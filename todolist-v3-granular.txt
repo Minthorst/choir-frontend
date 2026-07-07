@@ -1,0 +1,190 @@
+CHOIR VUE FRONTEND - TODO v3 (GRANULAR / IMPLEMENTATION-LEVEL)
+======================================================
+Read this together with todolist-v2-detailed.txt for the API contract.
+This version breaks each step down to near file/component level so you can
+tick things off while coding.
+
+============================================================
+PHASE 1 - PROJECT SETUP
+============================================================
+[ ] 1.1 npm install vue-router@4
+[ ] 1.2 npm install axios (or decide to hand-roll a fetch wrapper -- pick one and stick to it)
+[ ] 1.3 npm install qrcode.vue (renders member's own QR code)
+[ ] 1.4 npm install html5-qrcode (or vue-qrcode-reader) for the Doorman scanner
+[ ] 1.5 Create src/router/index.js with createRouter/createWebHistory
+[ ] 1.6 Register router in src/main.js: app.use(router)
+[ ] 1.7 Create .env with VITE_API_BASE_URL=http://localhost:8080
+[ ] 1.8 Create .env.production with the real deployed backend URL
+[ ] 1.9 Add src/config.js exporting API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+[ ] 1.10 Confirm/update choir-backend SecurityConfig CORS allowedOrigins to
+         include the actual Vite dev port (5173) and the prod frontend origin
+         -- this is a backend-repo change, just note it here so it isn't forgotten
+
+============================================================
+PHASE 2 - API LAYER (src/api/)
+============================================================
+[ ] 2.1 src/api/http.js
+      - axios.create({ baseURL: API_BASE_URL, withCredentials: true })
+      - response interceptor: on 401, emit a global "unauthenticated" event
+        (e.g. via a tiny event bus or router redirect to /admin/login)
+      - response interceptor: normalize error -> throw Error(response.data) so
+        callers get the plain-text backend message
+[ ] 2.2 src/api/memberApi.js
+      - getMemberInfo(secretKey): GET /member/{secretKey}
+      - checkIn(secretKey): POST /member/checkin/{secretKey}
+[ ] 2.3 src/api/sessionApi.js
+      - getAllSessions(): GET /admin/sessions
+      - getSessionMembers(sessionId): GET /admin/sessions/members/{id}
+      - finalizeSession({sessionId, sessionType}): POST /admin/finalizeSession
+[ ] 2.4 src/api/adminMemberApi.js
+      - getAllMembers(): GET /admin/members
+      - createMember({name, regularTickets, commitTickets}): POST /admin/member
+      - addTickets({memberId, commitTickets, regularTickets}): POST /admin/tickets
+[ ] 2.5 src/api/authApi.js
+      - login(username, password): POST /api/login as
+        application/x-www-form-urlencoded with fields "username"/"password"
+        (Spring formLogin default) -- axios needs URLSearchParams, not JSON
+      - logout(): POST /api/logout
+[ ] 2.6 Write a tiny manual test (or curl) for each call against a running
+      backend before wiring up UI, to confirm request shape matches Spring's
+      expectations (esp. login's form-encoding and CORS credentials)
+
+============================================================
+PHASE 3 - ROUTES & LAYOUT
+============================================================
+[ ] 3.1 Route table in src/router/index.js:
+      { path: '/member/:secretKey', component: MemberDashboard }
+      { path: '/admin/login', component: AdminLogin }
+      { path: '/admin', component: AdminSessions, meta: { requiresAuth: true } }
+      { path: '/admin/members', component: AdminMembers, meta: { requiresAuth: true } }
+      { path: '/admin/sessions/:id', component: AdminSessionDetail, meta: { requiresAuth: true } }
+      { path: '/doorman', component: DoormanScanner }
+[ ] 3.2 router.beforeEach: if meta.requiresAuth and no known-auth state,
+      attempt a lightweight authenticated GET (e.g. /admin/members) or keep a
+      simple in-memory/sessionStorage "isAuthenticated" flag set on login
+      success and cleared on 401/logout
+[ ] 3.3 src/layouts/AdminLayout.vue: nav links (Sessions | Members | Logout)
+[ ] 3.4 src/layouts/MemberLayout.vue: minimal header showing member name
+[ ] 3.5 src/App.vue: just <router-view/>, no leftover boilerplate markup
+
+============================================================
+PHASE 4 - MEMBER DASHBOARD (src/views/MemberDashboard.vue)
+============================================================
+[ ] 4.1 onMounted: read secretKey from route.params, call memberApi.getMemberInfo
+[ ] 4.2 State: name, regularTickets, commitTickets, pastAttendances, loading, error
+[ ] 4.3 Template: ticket count section (regular vs commit, and total)
+[ ] 4.4 Template: "last attended sessions" list, formatted date + status badge
+      (PRESENT vs NO_SHOW), sorted/limited to e.g. last 5
+[ ] 4.5 "Currently logged in" badge: decide the rule explicitly, e.g. true if
+      pastAttendances[0].status === 'PRESENT' AND that attendance's session
+      isOpen -- NOTE: current GetMemberInfoResponse doesn't expose session.isOpen,
+      so this may require a backend DTO change; document the decision, don't
+      guess silently
+[ ] 4.6 QR/link section: use qrcode.vue with :value="`${origin}/member/${secretKey}`"
+[ ] 4.7 "Copy link" button using navigator.clipboard
+[ ] 4.8 Check-in button component:
+      - disabled while a request is in flight
+      - on 400 "already checked in" -> inline message, no crash
+      - on 400 "insufficient tickets" -> inline message
+      - on 404 -> shouldn't normally happen since key came from URL, but handle gracefully
+      - on success -> refetch getMemberInfo to update counts/list
+[ ] 4.9 Skeleton/spinner while loading, friendly "invalid link" state on 404
+
+============================================================
+PHASE 5 - ADMIN: SESSIONS (src/views/AdminSessions.vue + AdminSessionDetail.vue)
+============================================================
+[ ] 5.1 AdminSessions.vue: fetch sessionApi.getAllSessions on mount
+[ ] 5.2 Table columns: id, startTime (formatted), isOpen (badge), sessionType, amountOfAttendees
+[ ] 5.3 Row click / button -> router.push(`/admin/sessions/${id}`)
+[ ] 5.4 AdminSessionDetail.vue: fetch sessionApi.getSessionMembers(id) on mount
+[ ] 5.5 Attendee table: id, name, regularTickets, commitTickets (+ secretKey if
+      admin needs to look someone up)
+[ ] 5.6 "Close session" control, only shown/enabled when session.isOpen === true:
+      - radio/select: REGULAR_ONLY vs COMMIT (do not offer AUTO_CLOSE/NONE --
+        backend rejects those with 400 WrongSessionTypeException)
+      - confirm dialog before calling finalizeSession (irreversible action)
+      - on success show EndSessionResponse: presentMembers, absentCommitMembers
+      - refresh session list/detail after finalize
+[ ] 5.7 Handle already-closed session view (read-only, no finalize control)
+
+============================================================
+PHASE 6 - ADMIN: MEMBERS (src/views/AdminMembers.vue)
+============================================================
+[ ] 6.1 Fetch adminMemberApi.getAllMembers on mount
+[ ] 6.2 Table: id, name, regularTickets, commitTickets, secretKey (masked by
+      default, reveal-on-click), QR export button per row (reuse qrcode.vue,
+      maybe render into a modal for printing/download)
+[ ] 6.3 "Create member" form/modal: name (required), regularTickets,
+      commitTickets (default 0) -> createMember, show resulting secretKey +
+      QR immediately after creation so admin can hand it to the member
+[ ] 6.4 "Add tickets" modal per member: two number inputs (regular delta,
+      commit delta) -> addTickets; label clearly as "add" not "set" since the
+      backend adds the values to the existing count
+[ ] 6.5 Client-side search/filter input over the members table (by name)
+[ ] 6.6 Basic input validation before submit (non-empty name, non-negative numbers)
+
+============================================================
+PHASE 7 - DOORMAN (src/views/DoormanScanner.vue)
+============================================================
+[ ] 7.1 Integrate html5-qrcode: start camera scanner on mount, stop on unmount
+[ ] 7.2 On successful scan, parse the payload:
+      - decide QR content format up front: raw secretKey string vs full URL
+        (e.g. https://.../member/<secretKey>) -- must match what Member
+        Dashboard's QR actually encodes (see step 4.6); extract secretKey
+        accordingly
+[ ] 7.3 Pause scanning while a check-in request is in flight (avoid duplicate scans)
+[ ] 7.4 On success: call memberApi.checkIn(secretKey), then memberApi.getMemberInfo(secretKey)
+      to read updated regularTickets/commitTickets for display
+[ ] 7.5 Green full-screen result: member name + remaining tickets, auto-dismiss
+      after ~3-4s back to scanning
+[ ] 7.6 Red full-screen result for errors, distinguishing:
+      - 404 unknown code ("QR not recognized")
+      - 400 already checked in
+      - 400 insufficient tickets
+      auto-dismiss back to scanning after a few seconds
+[ ] 7.7 Manual entry fallback input (typed secretKey) for when camera fails/is denied
+[ ] 7.8 Large tap targets / big text -- this screen is used on a phone at the door
+
+============================================================
+PHASE 8 - ADMIN AUTH (src/views/AdminLogin.vue + auth state)
+============================================================
+[ ] 8.1 src/stores/auth.js (simple reactive object or Pinia store) holding
+      isAuthenticated boolean, persisted to sessionStorage so a page refresh
+      doesn't bounce the admin to login unnecessarily (still re-validated by
+      the 401 interceptor)
+[ ] 8.2 AdminLogin.vue: username/password fields -> authApi.login, on success
+      set isAuthenticated = true and router.push('/admin')
+[ ] 8.3 On login failure (401), show inline "invalid credentials" message
+[ ] 8.4 Logout button in AdminLayout -> authApi.logout, clear auth state,
+      router.push('/admin/login')
+[ ] 8.5 Wire http.js's 401 interceptor to clear auth state + redirect, so an
+      expired session anywhere in the admin area bounces to login automatically
+
+============================================================
+PHASE 9 - STRETCH FEATURES (marked * in general-idea.md; do after MVP works)
+============================================================
+[ ] 9.1 PayPal button/link on MemberDashboard.vue (static config value, e.g.
+      a PayPal.me link or hosted button -- no backend call needed)
+[ ] 9.2 mailto: links on MemberDashboard.vue for "email app admin" / "email
+      choir admin" (addresses from env config, not hardcoded)
+[ ] 9.3 CSV export button on AdminSessionDetail.vue: build CSV client-side
+      from the already-fetched attendee list (name, tickets, id) and trigger
+      a Blob download -- no backend change required for this simple version
+[ ] 9.4 Flag for backend follow-up (not doable frontend-only): admin writing
+      "messages" that show up on a member's dashboard, and admin emailing
+      individual members -- needs new backend model/endpoints first
+
+============================================================
+PHASE 10 - POLISH / DEPLOYMENT
+============================================================
+[ ] 10.1 Shared LoadingSpinner.vue and ErrorBanner.vue components, used
+      consistently instead of ad-hoc v-if blocks per view
+[ ] 10.2 Mobile-first CSS for MemberDashboard + DoormanScanner (these are
+      used on phones); admin views can be desktop-first
+[ ] 10.3 Manual QA pass through general-idea.md's MVP bullet list end-to-end
+      against a real backend instance (create member -> checkin -> doorman
+      scan -> admin closes session -> verify ticket counts updated)
+[ ] 10.4 npm run build, verify output serves correctly behind the intended
+      nginx/Docker setup alongside choir-backend on the IONOS host
+[ ] 10.5 Double check no secrets (admin password, mail creds) ever end up in
+      frontend bundle/env files committed to git

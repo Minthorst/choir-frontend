@@ -1,0 +1,113 @@
+CHOIR VUE FRONTEND - TODO v2 (DETAILED)
+======================================================
+Backend API surface confirmed by reading choir-backend source:
+
+  Public:
+    GET  /member/{secretKey}            -> {name, regularTickets, commitTickets, pastAttendances:[{attendedOn,status}]}
+    POST /member/checkin/{secretKey}    -> 200 empty body | 404 not found | 400 already checked in / insufficient tickets
+
+  Admin (requires authenticated session, HTTP Basic or /api/login form):
+    POST /admin/finalizeSession {sessionId, sessionType: REGULAR_ONLY|COMMIT} -> {presentMembers, absentCommitMembers}
+    POST /admin/member {name, regularTickets, commitTickets}                 -> {secretKey}
+    GET  /admin/members                                                     -> [{id,name,regularTickets,commitTickets,secretKey}]
+    POST /admin/tickets {memberId, commitTickets, regularTickets}           -> void (values are DELTAS, added to existing)
+    GET  /admin/sessions                                                    -> [{id,startTime,isOpen,sessionType,amountOfAttendees}]
+    GET  /admin/sessions/members/{id}                                       -> [{id,name,regularTickets,commitTickets,secretKey}]
+
+  Auth endpoints: POST /api/login (username/password form fields), POST /api/logout
+  Error bodies are plain text strings with matching HTTP status (400/404/500).
+
+------------------------------------------------------------
+[ ] 1. PROJECT SETUP
+  [ ] 1.1 Decide + install router: vue-router
+  [ ] 1.2 Decide + install HTTP client: fetch wrapper or axios
+  [ ] 1.3 Install QR code generator (e.g. qrcode.vue) for member's own QR
+  [ ] 1.4 Install QR scanner (e.g. html5-qrcode / vue-qrcode-reader) for Doorman
+  [ ] 1.5 Add .env / .env.production with VITE_API_BASE_URL
+  [ ] 1.6 Note CORS mismatch: SecurityConfig.java currently only allows
+          http://localhost:3000, but Vite dev server defaults to 5173 -> will
+          need backend config change (flag for backend work, not this repo)
+
+[ ] 2. API LAYER (src/api/)
+  [ ] 2.1 http.js: base fetch/axios instance, withCredentials/credentials:'include'
+          (needed for session cookie auth), base URL from env
+  [ ] 2.2 memberApi.js: getMemberInfo(secretKey), checkIn(secretKey)
+  [ ] 2.3 adminSessionApi.js: getAllSessions(), getSessionMembers(id), finalizeSession(payload)
+  [ ] 2.4 adminMemberApi.js: getAllMembers(), createMember(payload), addTickets(payload)
+  [ ] 2.5 authApi.js: login(username,password), logout()
+  [ ] 2.6 Central error handling: map 401 -> redirect to admin login,
+          surface 400/404 text bodies as user-facing messages
+
+[ ] 3. ROUTING & APP SHELL
+  [ ] 3.1 Router with routes:
+          /member/:secretKey  (Member Dashboard)
+          /admin/login
+          /admin              (Session table, default)
+          /admin/members
+          /admin/sessions/:id (session detail / attendee list)
+          /doorman
+  [ ] 3.2 Navigation guard on /admin/* routes -> check session, else redirect to login
+  [ ] 3.3 Basic layout components per area (MemberLayout, AdminLayout, DoormanLayout)
+  [ ] 3.4 App.vue wires <router-view/>
+
+[ ] 4. MEMBER DASHBOARD (MVP)
+  [ ] 4.1 Fetch member info on mount via secretKey route param
+  [ ] 4.2 Display name, regularTickets, commitTickets (total + breakdown)
+  [ ] 4.3 Display last attended sessions from pastAttendances (date + status)
+  [ ] 4.4 "Currently logged in" indicator -- derive from most recent
+          attendance being PRESENT in an open session, or decide this needs
+          a new backend field (note as open question)
+  [ ] 4.5 Render QR code / shareable link encoding the member's secretKey URL
+  [ ] 4.6 Check-in button -> POST checkin, handle success/already-checked-in/
+          insufficient-tickets/not-found states
+  [ ] 4.7 Loading + error states (invalid/unknown secretKey)
+
+[ ] 5. ADMIN DASHBOARD - SESSIONS (MVP)
+  [ ] 5.1 Session table: id, startTime, isOpen, sessionType, amountOfAttendees
+  [ ] 5.2 Row action: view attendees (navigate to session detail)
+  [ ] 5.3 Session detail: list attending members (name, tickets, id)
+  [ ] 5.4 Close session action: choose REGULAR_ONLY or COMMIT, call finalizeSession
+  [ ] 5.5 Show finalize result (presentMembers, absentCommitMembers) after close
+  [ ] 5.6 Disable/hide close action for already-closed sessions
+  [ ] 5.7 Handle WrongSessionTypeException (400) if AUTO_CLOSE/NONE submitted
+
+[ ] 6. ADMIN DASHBOARD - MEMBERS (MVP)
+  [ ] 6.1 Member table: id, name, regularTickets, commitTickets
+  [ ] 6.2 Per-row: reveal/copy secret key + link, show/export QR code
+  [ ] 6.3 Create member form -> POST /admin/member, show returned secretKey
+  [ ] 6.4 Add tickets form/modal per member -> POST /admin/tickets
+          (remember payload is a DELTA, not absolute value -- clarify in UI)
+  [ ] 6.5 Search/filter members by name (client-side, list likely small)
+
+[ ] 7. DOORMAN DASHBOARD (MVP)
+  [ ] 7.1 Camera-based QR scanner view
+  [ ] 7.2 Extract secretKey from scanned QR payload
+  [ ] 7.3 Call check-in endpoint, show green "OK" screen w/ remaining tickets
+          -- checkin endpoint returns void, so also call getMemberInfo
+          after checkin to read remaining ticket counts for display
+  [ ] 7.4 Red/error screen for already-checked-in / insufficient tickets / not found
+  [ ] 7.5 Auto-reset to scanning state after a few seconds for next member
+  [ ] 7.6 Manual secretKey entry fallback (camera permission denied, etc.)
+
+[ ] 8. ADMIN AUTH
+  [ ] 8.1 Login form posting to /api/login (username/password fields)
+  [ ] 8.2 Persist "logged in" UI state (rely on session cookie; re-check via
+          a lightweight authenticated admin call on app load)
+  [ ] 8.3 Logout button -> POST /api/logout, redirect to login
+  [ ] 8.4 Global 401 interceptor -> force logout + redirect
+
+[ ] 9. STRETCH FEATURES (from general-idea.md, marked with *)
+  [ ] 9.1 PayPal link on Member Dashboard (static link/button, no backend needed)
+  [ ] 9.2 "Email App Admin" / "Email Choir Admin" mailto: links on Member Dashboard
+  [ ] 9.3 Export session data (CSV) from session detail view -- client-side
+          CSV generation from already-fetched attendee list, or new backend endpoint
+  [ ] 9.4 "Write messages into member dashboard" -- needs new backend field/endpoint,
+          out of scope until backend supports it
+  [ ] 9.5 Admin emailing members -- needs new backend endpoint, out of scope for now
+
+[ ] 10. POLISH / CROSS-CUTTING
+  [ ] 10.1 Consistent loading spinners / skeletons across views
+  [ ] 10.2 Consistent error banner/toast component
+  [ ] 10.3 Mobile-first styling for Member + Doorman views (used on phones)
+  [ ] 10.4 Basic accessibility pass (form labels, color contrast for green/red screens)
+  [ ] 10.5 Production build + Docker/nginx serving config to match backend deployment
