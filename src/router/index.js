@@ -5,6 +5,7 @@ import DoormanDash from "@/components/doorMan/DoormanDash.vue";
 import MemberLogin from "@/components/member/MemberLogin.vue";
 import PasswordGate from "@/components/PasswordGate.vue";
 import {useAuth} from "@/composables/useAuth";
+import {setPendingRedirect} from "@/router/pendingRedirect";
 
 const routes = [
     { path: '/', redirect: '/member' },
@@ -16,6 +17,7 @@ const routes = [
 ]
 
 const ROUTE_ROLE = {
+    'member-login': 'MEMBER',
     'member-dash': 'MEMBER',
     'doorman': 'DOORMAN',
     'admin': 'ADMIN',
@@ -37,7 +39,8 @@ router.beforeEach(async (to) => {
     if (authenticated.value && hasRole(requiredRole)) {
         return true
     }
-    return {name: 'login', query: {redirect: to.fullPath, tier: requiredRole}}
+    setPendingRedirect(to.fullPath)
+    return {name: 'login'}
 })
 
 export default router

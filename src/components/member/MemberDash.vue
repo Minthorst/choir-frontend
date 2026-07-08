@@ -2,7 +2,7 @@
 import {useRoute, useRouter} from "vue-router";
 import {computed, onMounted, ref} from "vue";
 import MemberView from "@/components/member/MemberView.vue";
-import {Member, MemberResponse} from "@/types/member";
+import {Member} from "@/types/member";
 import {AttendanceResponse} from "@/types/attendance";
 import {checkInMember, getMemberData} from "@/api/memberApi";
 import BaseButton from "@/components/ui/BaseButton.vue";
@@ -103,10 +103,10 @@ onMounted(async () => {
 }
 
 .base-button:disabled:hover {
-  background-color: #cbd5e1; /* Keep its exact default disabled color */
-  box-shadow: none;          /* Remove any lifting shadows */
-  transform: none;           /* Stop any moving animations */
-  cursor: not-allowed;       /* Show the universal 'cannot click' cursor */
+  background-color: #cbd5e1;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
 }
 .vertical-button-group {
   display: flex;

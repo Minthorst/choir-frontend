@@ -1,34 +1,36 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import {useRoute, useRouter} from "vue-router";
+import {useRouter} from "vue-router";
 import {useAuth} from "@/composables/useAuth";
+import {consumePendingRedirect} from "@/router/pendingRedirect";
 import BaseCard from "@/components/ui/BaseCard.vue";
 
-const route = useRoute()
 const router = useRouter()
-const {login} = useAuth()
+const {login, hasRole} = useAuth()
 
-const tier = (route.query.tier as string) || 'MEMBER'
-const redirect = (route.query.redirect as string) || '/'
+const redirect = consumePendingRedirect()
 
-const usernameForTier: Record<string, string> = {
-  MEMBER: 'member',
-  DOORMAN: 'doorman',
-  ADMIN: 'admin'
-}
+const USERNAMES_BY_PRIORITY = ['admin', 'doorman', 'member']
 
 const password = ref('')
 const errorMessage = ref('')
 
 async function submit() {
   errorMessage.value = ''
-  const username = usernameForTier[tier] || 'member'
-  const ok = await login(username, password.value)
-  if (ok) {
-    router.push(redirect)
-  } else {
-    errorMessage.value = 'Incorrect password'
+  for (const username of USERNAMES_BY_PRIORITY) {
+    const ok = await login(username, password.value)
+    if (ok) {
+      if (hasRole('ADMIN')) {
+        router.push('/admin')
+      } else if (hasRole('DOORMAN')) {
+        router.push('/doorman')
+      } else {
+        router.push(redirect)
+      }
+      return
+    }
   }
+  errorMessage.value = 'Incorrect password'
 }
 </script>
 

@@ -1,5 +1,22 @@
 <script setup lang="ts">
 import BaseButton from "@/components/ui/BaseButton.vue";
+import {useAuth} from "@/composables/useAuth";
+import {useRouter} from "vue-router";
+import {onMounted} from "vue";
+
+const {authenticated, initialized, logout, refresh} = useAuth()
+const router = useRouter()
+
+onMounted(() => {
+  if (!initialized.value) {
+    refresh()
+  }
+})
+
+async function handleLogout() {
+  await logout()
+  router.push('/member')
+}
 </script>
 
 <template>
@@ -7,6 +24,7 @@ import BaseButton from "@/components/ui/BaseButton.vue";
     <base-button to="/member">Member-Login</base-button>
     <base-button to="/doorman">Doorman</base-button>
     <base-button to="/admin">Admin</base-button>
+    <base-button v-if="authenticated" variant="secondary" @click="handleLogout">Logout</base-button>
   </div>
 </template>
 
