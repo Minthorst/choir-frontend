@@ -1,13 +1,64 @@
 <script setup lang="ts">
 
 import {QrcodeStream} from "vue-qrcode-reader";
-import {ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {checkInMember, getMemberData} from "@/api/memberApi";
+import {checkInMemberById, getMemberNames, MemberNameResponse} from "@/api/doormanApi";
 import Modal from "@/components/ui/Modal.vue";
+import BaseButton from "@/components/ui/BaseButton.vue";
 
 const scannerOn = ref(false)
 const qrScannerResponse = ref('')
 const checkInSuccess = ref('pending')
+
+const members = ref<MemberNameResponse[]>([])
+const searchText = ref('')
+const selectedMemberId = ref<number | null>(null)
+const showDropdown = ref(false)
+
+onMounted(() => {
+  getMemberNames().then((list) => {
+    members.value = list
+  })
+})
+
+const filteredMembers = computed(() => {
+  const query = searchText.value.trim().toLowerCase()
+  if (!query) return members.value
+  return members.value.filter((m) => m.name.toLowerCase().includes(query))
+})
+
+function selectMember(member: MemberNameResponse) {
+  selectedMemberId.value = member.id
+  searchText.value = member.name
+  showDropdown.value = false
+}
+
+function onSearchInput() {
+  selectedMemberId.value = null
+  showDropdown.value = true
+}
+
+function resetSelection() {
+  selectedMemberId.value = null
+  searchText.value = ''
+}
+
+function checkInSelectedMember() {
+  if (!selectedMemberId.value) return
+  checkInMemberById(selectedMemberId.value)
+      .then((result) => {
+        const verb = result.checkedIn ? 'is already checked in' : 'checked in successfully'
+        qrScannerResponse.value = result.name + ' ' + verb + ' with ' + result.regularTickets + ' Regular and ' + result.commitTickets + ' Commit Tickets remaining'
+        checkInSuccess.value = 'success'
+        resetSelection()
+      })
+      .catch((e) => {
+        qrScannerResponse.value = e.message
+        checkInSuccess.value = 'fail'
+        resetSelection()
+      })
+}
 
 function toggleScanner() {
   scannerOn.value = !scannerOn.value
@@ -43,7 +94,26 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 </script>
 
 <template>
-  <button @click="toggleScanner">scan QR-Code</button>
+  <div class="manual-checkin">
+    <div class="member-select">
+      <input
+          type="text"
+          v-model="searchText"
+          placeholder="Type a member name..."
+          @input="onSearchInput"
+          @focus="showDropdown = true"
+          @blur="showDropdown = false"
+      />
+      <ul v-if="showDropdown && filteredMembers.length" class="dropdown">
+        <li v-for="m in filteredMembers" :key="m.id" @mousedown.prevent="selectMember(m)">
+          {{ m.name }}
+        </li>
+      </ul>
+    </div>
+    <base-button :disabled="!selectedMemberId" @click="checkInSelectedMember">Check In</base-button>
+  </div>
+
+  <button class="scan-button" @click="toggleScanner">scan QR-Code</button>
   <modal :is-open="scannerOn" @close="toggleScanner">
     <qrcode-stream @detect="onDetect"></qrcode-stream>
   </modal>
@@ -67,7 +137,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
   color: #ffffff;
 }
 
-button {
+.scan-button {
   display: block;
   margin: 2rem auto;
   background-color: var(--accent);
@@ -82,7 +152,7 @@ button {
   min-height: 2.75rem;
 }
 
-button:hover {
+.scan-button:hover {
   background-color: var(--accent-hover);
 }
 
@@ -90,5 +160,61 @@ button:hover {
   width: 100%;
   height: auto;
   border-radius: var(--radius-md);
+}
+
+.manual-checkin {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  max-width: 480px;
+  margin: 2rem auto 0;
+}
+
+.member-select {
+  position: relative;
+  flex: 1;
+}
+
+.member-select input {
+  background-color: var(--bg);
+  border: 1px solid var(--row-active);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+}
+
+.member-select input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  background-color: var(--row);
+  border: 1px solid var(--row-ghost);
+  border-radius: var(--radius-sm);
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  z-index: 10;
+}
+
+.dropdown li {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: var(--row-ghost);
 }
 </style>
