@@ -4,12 +4,14 @@ export interface Member {
     name: string,
     commitTickets: number,
     regularTickets: number,
-    pastAttendance: Attendance[]
+    pastAttendance: Attendance[],
+    checkedIn: boolean
 }
 
 export interface MemberResponse {
     name: string,
     regularTickets: number,
     commitTickets: number,
-    pastAttendances: AttendanceResponse[]
+    pastAttendances: AttendanceResponse[],
+    checkedIn: boolean
 }
