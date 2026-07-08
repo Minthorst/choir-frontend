@@ -11,11 +11,11 @@ export async function checkInMember(secretKey: string) {
 
 export async function getMemberData(secretKey: string): Promise<MemberResponse> {
     const memberUrl = 'http://localhost:8080/member/' + secretKey
-    const response = await fetch(memberUrl);
-    if (response.status === 404) {
+    const response = await fetch(memberUrl, {credentials: 'include'});
+    if (response.status === 404 || response.status === 401) {
         //TODO add custom exception
         const error = new Error();
-        ((error as any).status = 404);
+        ((error as any).status = response.status);
         throw error;
     }
     return await response.json();
@@ -24,7 +24,8 @@ export async function getMemberData(secretKey: string): Promise<MemberResponse> 
 
 function fetchCheckin(url: string) {
     return fetch(url, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include'
     })
     //TODO add exception handling
 }

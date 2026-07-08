@@ -3,6 +3,8 @@ import MemberDash from "@/components/member/MemberDash.vue";
 import AdminDash from "@/components/admin/AdminDash.vue";
 import DoormanDash from "@/components/doorMan/DoormanDash.vue";
 import MemberLogin from "@/components/member/MemberLogin.vue";
+import PasswordGate from "@/components/PasswordGate.vue";
+import {useAuth} from "@/composables/useAuth";
 
 const routes = [
     { path: '/', redirect: '/member' },
@@ -10,9 +12,32 @@ const routes = [
     {path: '/member/:secretKey', name: 'member-dash', component: MemberDash},
     { path: '/admin', name: 'admin', component: AdminDash },
     { path: '/doorman', name: 'doorman', component: DoormanDash },
+    { path: '/login', name: 'login', component: PasswordGate },
 ]
 
-export default createRouter({
+const ROUTE_ROLE = {
+    'member-dash': 'MEMBER',
+    'doorman': 'DOORMAN',
+    'admin': 'ADMIN',
+}
+
+const router = createRouter({
     history: createWebHistory(),
     routes
 })
+
+router.beforeEach(async (to) => {
+    const requiredRole = ROUTE_ROLE[to.name]
+    if (!requiredRole) return true
+
+    const {initialized, authenticated, hasRole, refresh} = useAuth()
+    if (!initialized.value) {
+        await refresh()
+    }
+    if (authenticated.value && hasRole(requiredRole)) {
+        return true
+    }
+    return {name: 'login', query: {redirect: to.fullPath, tier: requiredRole}}
+})
+
+export default router
