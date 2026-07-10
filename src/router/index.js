@@ -6,6 +6,7 @@ import MemberLogin from "@/components/member/MemberLogin.vue";
 import PasswordGate from "@/components/PasswordGate.vue";
 import {useAuth} from "@/composables/useAuth";
 import {setPendingRedirect} from "@/router/pendingRedirect";
+import {setUnauthorizedHandler} from "@/api/http";
 
 const routes = [
     { path: '/', redirect: '/member' },
@@ -41,6 +42,14 @@ router.beforeEach(async (to) => {
     }
     setPendingRedirect(to.fullPath)
     return {name: 'login'}
+})
+
+setUnauthorizedHandler(() => {
+    const {authenticated, roles} = useAuth()
+    authenticated.value = false
+    roles.value = []
+    setPendingRedirect(router.currentRoute.value.fullPath)
+    router.push({name: 'login'})
 })
 
 export default router
