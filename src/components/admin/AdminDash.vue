@@ -30,6 +30,7 @@ const pageSize = 5
 const selectedSession = ref<SessionResponse | null>(null)
 const attendingMembers = ref<AdminMemberInfoResponse[]>([])
 const showMembersModal = ref(false)
+const showSessionModal = ref(false)
 
 const finalizeResponse = ref('')
 const finalizeStatus = ref('pending')
@@ -201,6 +202,11 @@ function viewMembers(session: SessionResponse) {
   })
 }
 
+function openSessionDetail(session: SessionResponse) {
+  selectedSession.value = session
+  showSessionModal.value = true
+}
+
 function goToMember(member: AdminMemberInfoResponse) {
   showMembersModal.value = false
   router.push(`/member/${member.secretKey}`)
@@ -211,6 +217,7 @@ function finalize(session: SessionResponse, sessionType: string) {
       .then((result) => {
         finalizeResponse.value = `Finalized: ${result.presentMembers} present, ${result.absentCommitMembers} absent commit members charged`
         finalizeStatus.value = 'success'
+        showSessionModal.value = false
         loadSessions()
       })
       .catch((e) => {
@@ -234,20 +241,16 @@ function finalize(session: SessionResponse, sessionType: string) {
           <th @click="sortBy('amountOfAttendees')">Attendees
             {{ sortKey === 'amountOfAttendees' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}
           </th>
-          <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="session in pageItems" :key="session.id">
           <td>{{ formatDatetime(session.startTime) }}</td>
-          <td>{{ session.sessionType }}</td>
-          <td class="clickable-cell" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
-          <td class="actions">
-            <template v-if="canFinalize(session)">
-              <base-button variant="secondary" @click="finalize(session, 'REGULAR_ONLY')">Regular Only</base-button>
-              <base-button variant="secondary" @click="finalize(session, 'COMMIT')">Commit</base-button>
-            </template>
+          <td :class="{ 'needs-action': canFinalize(session) }"
+              @click="canFinalize(session) && openSessionDetail(session)">
+            {{ session.sessionType }}
           </td>
+          <td class="clickable-cell" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
         </tr>
         </tbody>
       </table>
@@ -343,6 +346,15 @@ function finalize(session: SessionResponse, sessionType: string) {
     </ul>
   </modal>
 
+  <modal :is-open="showSessionModal" @close="showSessionModal = false">
+    <h3 v-if="selectedSession">{{ formatDatetime(selectedSession.startTime) }}</h3>
+    <p class="session-status" v-if="selectedSession">Status: {{ selectedSession.sessionType }}</p>
+    <div class="session-actions" v-if="selectedSession && canFinalize(selectedSession)">
+      <base-button variant="secondary" @click="finalize(selectedSession, 'REGULAR_ONLY')">Regular Only</base-button>
+      <base-button variant="secondary" @click="finalize(selectedSession, 'COMMIT')">Commit</base-button>
+    </div>
+  </modal>
+
   <result-modal :status="finalizeStatus" :message="finalizeResponse" @close="finalizeStatus = 'pending'"/>
 </template>
 
@@ -368,29 +380,26 @@ function finalize(session: SessionResponse, sessionType: string) {
   -webkit-overflow-scrolling: touch;
 }
 
-.sessions-table {
-  table-layout: fixed;
-  min-width: 520px;
-}
-
 .sessions-table th:nth-child(1),
 .sessions-table td:nth-child(1) {
-  width: 130px;
+  width: 40%;
 }
 
-.sessions-table th:nth-child(2),
-.sessions-table td:nth-child(2) {
-  width: 110px;
+.needs-action {
+  color: var(--danger);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
-.sessions-table th:nth-child(3),
-.sessions-table td:nth-child(3) {
-  width: 90px;
+.session-status {
+  color: var(--muted);
+  margin: 0.5rem 0 0;
 }
 
-.sessions-table th:nth-child(4),
-.sessions-table td:nth-child(4) {
-  width: 190px;
+.session-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .members-table {
@@ -472,14 +481,6 @@ function finalize(session: SessionResponse, sessionType: string) {
 
 td {
   border-bottom: 1px solid var(--row-ghost);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  align-items: center;
-  min-height: 2.75rem;
 }
 
 .empty {
