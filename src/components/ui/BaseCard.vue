@@ -20,7 +20,7 @@ function toggle() {
       <span v-if="collapsible" class="chevron" :class="{open}">▾</span>
     </header>
 
-    <div class="collapse-wrapper" :class="{open: !collapsible || open}">
+    <div class="collapse-wrapper" :class="{collapsible, open}">
       <div class="collapse-inner">
         <main class="card-body">
           <slot></slot>
@@ -76,17 +76,17 @@ function toggle() {
   transform: rotate(180deg);
 }
 
-.collapse-wrapper {
+.collapse-wrapper.collapsible {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.25s ease;
 }
 
-.collapse-wrapper.open {
+.collapse-wrapper.collapsible.open {
   grid-template-rows: 1fr;
 }
 
-.collapse-inner {
+.collapse-wrapper.collapsible .collapse-inner {
   overflow: hidden;
 }
 
