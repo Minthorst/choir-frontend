@@ -37,3 +37,6 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+/ANALYSIS.md
+/GOLIVE-TODO.md
+/REVIEW-2026-07-08.md
