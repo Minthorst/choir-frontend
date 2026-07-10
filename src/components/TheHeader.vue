@@ -21,7 +21,7 @@ async function handleLogout() {
 
 <template>
   <div class="button-group">
-    <base-button to="/member">Member-Login</base-button>
+    <base-button to="/member">Member</base-button>
     <base-button to="/doorman">Doorman</base-button>
     <base-button to="/admin">Admin</base-button>
     <base-button v-if="authenticated" variant="secondary" @click="handleLogout">Logout</base-button>
