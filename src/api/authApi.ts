@@ -1,4 +1,4 @@
-import {apiFetch} from "@/api/http";
+import {ApiError, apiFetch} from "@/api/http";
 
 export interface MeResponse {
     authenticated: boolean
@@ -17,7 +17,10 @@ export async function login(username: string, password: string): Promise<boolean
             body
         }, {handleUnauthorized: false})
         return true
-    } catch {
+    } catch (error) {
+        if (error instanceof ApiError && error.status === 429) {
+            throw error
+        }
         return false
     }
 }

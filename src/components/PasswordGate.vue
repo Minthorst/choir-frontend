@@ -17,22 +17,26 @@ const errorMessage = ref('')
 
 async function submit() {
   errorMessage.value = ''
-  for (const username of USERNAMES_BY_PRIORITY) {
-    const ok = await login(username, password.value)
-    if (ok) {
-      if (hasRole('ADMIN')) {
-        router.push('/admin')
-      } else if (hasRole('DOORMAN')) {
-        router.push('/doorman')
-      } else {
-        const target = consumePendingRedirect()
-        const requiredRole = ROUTE_ROLE[router.resolve(target).name]
-        router.push(!requiredRole || hasRole(requiredRole) ? target : '/member')
+  try {
+    for (const username of USERNAMES_BY_PRIORITY) {
+      const ok = await login(username, password.value)
+      if (ok) {
+        if (hasRole('ADMIN')) {
+          router.push('/admin')
+        } else if (hasRole('DOORMAN')) {
+          router.push('/doorman')
+        } else {
+          const target = consumePendingRedirect()
+          const requiredRole = ROUTE_ROLE[router.resolve(target).name]
+          router.push(!requiredRole || hasRole(requiredRole) ? target : '/member')
+        }
+        return
       }
-      return
     }
+    errorMessage.value = 'Incorrect password'
+  } catch {
+    errorMessage.value = 'Too many failed attempts — please wait a few minutes and try again'
   }
-  errorMessage.value = 'Incorrect password'
 }
 </script>
 
