@@ -8,7 +8,7 @@ import Modal from "@/components/ui/Modal.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 
 const scannerOn = ref(false)
-const qrScannerResponse = ref('')
+const checkInResponse = ref('')
 const checkInSuccess = ref('pending')
 
 const members = ref<MemberNameResponse[]>([])
@@ -49,12 +49,12 @@ function checkInSelectedMember() {
   checkInMemberById(selectedMemberId.value)
       .then((result) => {
         const verb = result.checkedIn ? 'is already checked in' : 'checked in successfully'
-        qrScannerResponse.value = result.name + ' ' + verb + ' with ' + result.regularTickets + ' Regular and ' + result.commitTickets + ' Commit Tickets remaining'
+        checkInResponse.value = result.name + ' ' + verb + ' with ' + result.regularTickets + ' Regular and ' + result.commitTickets + ' Commit Tickets remaining'
         checkInSuccess.value = 'success'
         resetSelection()
       })
       .catch((e) => {
-        qrScannerResponse.value = e.message
+        checkInResponse.value = e.message
         checkInSuccess.value = 'fail'
         resetSelection()
       })
@@ -66,7 +66,7 @@ function toggleScanner() {
 
 function constructQRScannerResponse(secretKey: string) {
   getMemberData(secretKey).then((member) => {
-    qrScannerResponse.value = member.name + ' checked in successfully with ' + member.regularTickets + ' Regular and ' + member.commitTickets + ' Commit Tickets remaining'
+    checkInResponse.value = member.name + ' checked in successfully with ' + member.regularTickets + ' Regular and ' + member.commitTickets + ' Commit Tickets remaining'
   })
 }
 
@@ -82,7 +82,7 @@ function onDetect(detectedCodes: any) {
       constructQRScannerResponse(secretKey)
       checkInSuccess.value = 'success'
     } else {
-      qrScannerResponse.value = e.message
+      checkInResponse.value = e.message
       checkInSuccess.value = 'fail'
     }
   })
@@ -94,6 +94,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 </script>
 
 <template>
+  <button class="scan-button" @click="toggleScanner">scan QR-Code</button>
   <div class="manual-checkin">
     <div class="member-select">
       <input
@@ -112,16 +113,14 @@ function extractSecretKeyFromUrl(rawUrl: string) {
     </div>
     <base-button :disabled="!selectedMemberId" @click="checkInSelectedMember">Check In</base-button>
   </div>
-
-  <button class="scan-button" @click="toggleScanner">scan QR-Code</button>
   <modal :is-open="scannerOn" @close="toggleScanner">
     <qrcode-stream @detect="onDetect"></qrcode-stream>
   </modal>
   <modal class="success-modal" :is-open="checkInSuccess === 'success'" @close="checkInSuccess='pending'">
-    <p>{{ qrScannerResponse }}</p>
+    <p>{{ checkInResponse }}</p>
   </modal>
   <modal class="fail-modal" :is-open="checkInSuccess === 'fail'" @close="checkInSuccess='pending'">
-    <p>{{ qrScannerResponse }}</p>
+    <p>{{ checkInResponse }}</p>
   </modal>
 
 </template>

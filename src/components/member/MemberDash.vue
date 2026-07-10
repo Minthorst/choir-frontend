@@ -16,6 +16,20 @@ const secretKey = Array.isArray(route.params.secretKey) ? route.params.secretKey
 const loading = ref(true)
 const memberData = ref<Member | null>(null)
 const showQRCode = ref(false)
+const errorMessage = ref('')
+const showErrorModal = ref(false)
+
+function showError(message: string) {
+  errorMessage.value = message
+  showErrorModal.value = true
+}
+
+function closeErrorModal() {
+  showErrorModal.value = false
+  if (!memberData.value) {
+    router.push({name: 'member-login'})
+  }
+}
 
 function toggleQRCode() {
   showQRCode.value = !showQRCode.value
@@ -38,11 +52,9 @@ function checkInAndFetchMember() {
       .then(() => getMemberInfo())
       .catch((error) => {
         loading.value = false
-        alert(error.message)
+        showError(error.message)
       })
-  //TODO add exception handling}
   loading.value = false
-
 }
 
 function getMemberInfo() {
@@ -53,7 +65,7 @@ function getMemberInfo() {
           name: m.name,
           regularTickets: m.regularTickets,
           commitTickets: m.commitTickets,
-          pastAttendance: m.pastAttendances.map((a: AttendanceResponse) => ({
+          pastAttendance: (m.pastAttendances || []).map((a: AttendanceResponse) => ({
             dateTime: a.attendedOn,
             status: a.status
           })),
@@ -61,10 +73,8 @@ function getMemberInfo() {
         }
         loading.value = false
       }).catch((error) => {
-    //TODO add error handling/alterts
-    alert("could not login member with key: " + secretKey)
     loading.value = false
-    router.push({name: 'member-login'})
+    showError("could not login member with key: " + secretKey)
   })
 }
 
@@ -93,10 +103,18 @@ onMounted(async () => {
       </modal>
     </div>
   </base-card>
+  <modal class="fail-modal" :is-open="showErrorModal" @close="closeErrorModal">
+    <p>{{ errorMessage }}</p>
+  </modal>
   <!--  TODO add paypal links-->
 </template>
 
 <style scoped>
+.fail-modal :deep(.modal-content) {
+  background-color: #b91c1c;
+  color: #ffffff;
+}
+
 .checkin-not-possible {
   cursor: not-allowed;
   background-color: grey;
