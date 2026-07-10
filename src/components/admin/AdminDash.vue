@@ -347,11 +347,9 @@ function finalize(session: SessionResponse, sessionType: string) {
 </template>
 
 <style scoped>
-.base-card.sessions-card {
-  max-width: 640px;
-}
-
-.base-card.members-card {
+.base-card.sessions-card,
+.base-card.members-card,
+.base-card.add-member-card {
   max-width: 760px;
 }
 
