@@ -7,6 +7,7 @@ import {checkInMemberById, getMemberNames, MemberNameResponse} from "@/api/doorm
 import Modal from "@/components/ui/Modal.vue";
 import ResultModal from "@/components/ui/ResultModal.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
+import BaseCard from "@/components/ui/BaseCard.vue";
 
 const scannerOn = ref(false)
 const checkInResponse = ref('')
@@ -95,25 +96,35 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 </script>
 
 <template>
-  <base-button class="scan-button" @click="toggleScanner">scan QR-Code</base-button>
-  <div class="manual-checkin">
-    <div class="member-select">
-      <input
-          type="text"
-          v-model="searchText"
-          placeholder="Type a member name..."
-          @input="onSearchInput"
-          @focus="showDropdown = true"
-          @blur="showDropdown = false"
-      />
-      <ul v-if="showDropdown && filteredMembers.length" class="dropdown">
-        <li v-for="m in filteredMembers" :key="m.id" @mousedown.prevent="selectMember(m)">
-          {{ m.name }}
-        </li>
-      </ul>
+  <base-card>
+    <template #header>
+      <h3>QR-CheckIn</h3>
+    </template>
+    <base-button class="scan-button" @click="toggleScanner">scan QR-Code</base-button>
+  </base-card>
+  <base-card>
+    <template #header>
+      <h3>Manual CheckIn by name</h3>
+    </template>
+    <div class="manual-checkin">
+      <div class="member-select">
+        <input
+            type="text"
+            v-model="searchText"
+            placeholder="Type a member name..."
+            @input="onSearchInput"
+            @focus="showDropdown = true"
+            @blur="showDropdown = false"
+        />
+        <ul v-if="showDropdown && filteredMembers.length" class="dropdown">
+          <li v-for="m in filteredMembers" :key="m.id" @mousedown.prevent="selectMember(m)">
+            {{ m.name }}
+          </li>
+        </ul>
+      </div>
+      <base-button :disabled="!selectedMemberId" @click="checkInSelectedMember">Check In</base-button>
     </div>
-    <base-button :disabled="!selectedMemberId" @click="checkInSelectedMember">Check In</base-button>
-  </div>
+  </base-card>
   <modal :is-open="scannerOn" @close="toggleScanner">
     <qrcode-stream @detect="onDetect"></qrcode-stream>
   </modal>
