@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
 import {
   AdminMemberInfoResponse,
   addTickets,
@@ -15,8 +14,6 @@ import BaseCard from "@/components/ui/BaseCard.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 import Modal from "@/components/ui/Modal.vue";
 import ResultModal from "@/components/ui/ResultModal.vue";
-
-const router = useRouter()
 
 const sessions = ref<SessionResponse[]>([])
 const loading = ref(true)
@@ -43,6 +40,15 @@ const memberPage = ref(1)
 const memberPageSize = 5
 
 const ticketInputs = ref<Record<number, { regular: number; commit: number }>>({})
+
+const selectedMemberId = ref<number | null>(null)
+const showMemberModal = ref(false)
+const selectedMember = computed(() => allMembers.value.find((m) => m.id === selectedMemberId.value) ?? null)
+
+function openMemberDetail(member: AdminMemberInfoResponse) {
+  selectedMemberId.value = member.id
+  showMemberModal.value = true
+}
 
 const newMemberName = ref('')
 const createdSecretKey = ref('')
@@ -207,11 +213,6 @@ function openSessionDetail(session: SessionResponse) {
   showSessionModal.value = true
 }
 
-function goToMember(member: AdminMemberInfoResponse) {
-  showMembersModal.value = false
-  router.push(`/member/${member.secretKey}`)
-}
-
 function finalize(session: SessionResponse, sessionType: string) {
   finalizeSession(session.id, sessionType)
       .then((result) => {
@@ -282,30 +283,14 @@ function finalize(session: SessionResponse, sessionType: string) {
           <th @click="sortMembersBy('name')">Name
             {{ memberSortKey === 'name' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
           </th>
-          <th @click="sortMembersBy('regularTickets')">Regular
-            {{ memberSortKey === 'regularTickets' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
-          </th>
-          <th @click="sortMembersBy('commitTickets')">Commit
-            {{ memberSortKey === 'commitTickets' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
-          </th>
-          <th @click="sortMembersBy('checkedIn')">Checked In
+          <th @click="sortMembersBy('checkedIn')">Currently Checked In
             {{ memberSortKey === 'checkedIn' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
           </th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="member in memberPageItems" :key="member.id">
-          <td class="clickable-cell" @click="goToMember(member)">{{ member.name }}</td>
-          <td class="ticket-cell">
-            <span class="ticket-count">{{ member.regularTickets }}</span>
-            <input type="number" min="1" v-model.number="getTicketInput(member.id).regular"/>
-            <base-button variant="secondary" @click="addRegularTickets(member)">Add</base-button>
-          </td>
-          <td class="ticket-cell">
-            <span class="ticket-count">{{ member.commitTickets }}</span>
-            <input type="number" min="1" v-model.number="getTicketInput(member.id).commit"/>
-            <base-button variant="secondary" @click="addCommitTickets(member)">Add</base-button>
-          </td>
+          <td class="clickable-cell" @click="openMemberDetail(member)">{{ member.name }}</td>
           <td>{{ member.checkedIn ? 'Yes' : 'No' }}</td>
         </tr>
         </tbody>
@@ -339,7 +324,7 @@ function finalize(session: SessionResponse, sessionType: string) {
   <modal :is-open="showMembersModal" @close="showMembersModal = false">
     <h3>Attending Members</h3>
     <ul class="members-list">
-      <li v-for="member in attendingMembers" :key="member.id" @click="goToMember(member)">
+      <li v-for="member in attendingMembers" :key="member.id" @click="openMemberDetail(member)">
         {{ member.name }}
       </li>
       <li v-if="attendingMembers.length === 0" class="empty">No attendees</li>
@@ -356,6 +341,25 @@ function finalize(session: SessionResponse, sessionType: string) {
   </modal>
 
   <result-modal :status="finalizeStatus" :message="finalizeResponse" @close="finalizeStatus = 'pending'"/>
+
+  <modal :is-open="showMemberModal" @close="showMemberModal = false">
+    <template v-if="selectedMember">
+      <h3>{{ selectedMember.name }}</h3>
+      <p class="member-secret-key">Secret Key: {{ selectedMember.secretKey }}</p>
+      <div class="member-tickets">
+        <div class="ticket-row">
+          <span>Regular Tickets: {{ selectedMember.regularTickets }}</span>
+          <input type="number" min="1" v-model.number="getTicketInput(selectedMember.id).regular"/>
+          <base-button variant="secondary" @click="addRegularTickets(selectedMember)">Add</base-button>
+        </div>
+        <div class="ticket-row">
+          <span>Commit Tickets: {{ selectedMember.commitTickets }}</span>
+          <input type="number" min="1" v-model.number="getTicketInput(selectedMember.id).commit"/>
+          <base-button variant="secondary" @click="addCommitTickets(selectedMember)">Add</base-button>
+        </div>
+      </div>
+    </template>
+  </modal>
 </template>
 
 <style scoped>
@@ -402,28 +406,10 @@ function finalize(session: SessionResponse, sessionType: string) {
   margin-top: 1rem;
 }
 
-.members-table {
-  table-layout: fixed;
-  min-width: 490px;
-}
-
 .members-table th:nth-child(1),
 .members-table td:nth-child(1) {
-  width: 120px;
+  width: 60%;
 }
-
-.members-table th:nth-child(2),
-.members-table td:nth-child(2),
-.members-table th:nth-child(3),
-.members-table td:nth-child(3) {
-  width: 140px;
-}
-
-.members-table th:nth-child(4),
-.members-table td:nth-child(4) {
-  width: 90px;
-}
-
 
 .clickable-cell {
   cursor: pointer;
@@ -454,29 +440,34 @@ function finalize(session: SessionResponse, sessionType: string) {
   margin-top: 0.5rem;
 }
 
-.ticket-cell {
-  vertical-align: middle;
-  overflow: hidden;
-  white-space: nowrap;
+.member-secret-key {
+  font-family: monospace;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 0.25rem;
 }
 
-.ticket-count {
-  min-width: 1.2rem;
-  display: inline-block;
+.member-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 1.25rem;
 }
 
-.ticket-cell input {
-  padding: 0.3rem 0.4rem;
-  font-size: 0.85rem;
-  width: 3rem;
-  margin: 0 0.35rem;
+.ticket-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.ticket-cell :deep(.base-button) {
-  padding: 0.3rem 0.6rem;
-  min-height: 0;
-  font-size: 0.8rem;
-  white-space: nowrap;
+.ticket-row span {
+  flex: 1;
+  text-align: left;
+}
+
+.ticket-row input {
+  width: 4rem;
 }
 
 td {
