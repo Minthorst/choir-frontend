@@ -225,31 +225,33 @@ function finalize(session: SessionResponse, sessionType: string) {
     <template #header>
       <h3>Sessions</h3>
     </template>
-    <table v-if="!loading && pageItems.length > 0">
-      <thead>
-      <tr>
-        <th @click="sortBy('startTime')">Date {{ sortKey === 'startTime' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</th>
-        <th @click="sortBy('sessionType')">Status {{ sortKey === 'sessionType' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</th>
-        <th @click="sortBy('amountOfAttendees')">Attendees
-          {{ sortKey === 'amountOfAttendees' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}
-        </th>
-        <th>Actions</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="session in pageItems" :key="session.id">
-        <td>{{ formatDatetime(session.startTime) }}</td>
-        <td>{{ session.sessionType }}</td>
-        <td class="clickable-cell" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
-        <td class="actions">
-          <template v-if="canFinalize(session)">
-            <base-button variant="secondary" @click="finalize(session, 'REGULAR_ONLY')">Regular Only</base-button>
-            <base-button variant="secondary" @click="finalize(session, 'COMMIT')">Commit</base-button>
-          </template>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-scroll" v-if="!loading && pageItems.length > 0">
+      <table class="sessions-table">
+        <thead>
+        <tr>
+          <th @click="sortBy('startTime')">Date {{ sortKey === 'startTime' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</th>
+          <th @click="sortBy('sessionType')">Status {{ sortKey === 'sessionType' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</th>
+          <th @click="sortBy('amountOfAttendees')">Attendees
+            {{ sortKey === 'amountOfAttendees' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}
+          </th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="session in pageItems" :key="session.id">
+          <td>{{ formatDatetime(session.startTime) }}</td>
+          <td>{{ session.sessionType }}</td>
+          <td class="clickable-cell" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
+          <td class="actions">
+            <template v-if="canFinalize(session)">
+              <base-button variant="secondary" @click="finalize(session, 'REGULAR_ONLY')">Regular Only</base-button>
+              <base-button variant="secondary" @click="finalize(session, 'COMMIT')">Commit</base-button>
+            </template>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
     <p v-else-if="!loading" class="empty">No sessions found</p>
 
     <div class="pagination" v-if="totalPages > 1">
@@ -270,40 +272,42 @@ function finalize(session: SessionResponse, sessionType: string) {
         placeholder="Search by name..."
         @input="memberPage = 1"
     />
-    <table v-if="memberPageItems.length > 0" class="members-table">
-      <thead>
-      <tr>
-        <th @click="sortMembersBy('name')">Name
-          {{ memberSortKey === 'name' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
-        </th>
-        <th @click="sortMembersBy('regularTickets')">Regular
-          {{ memberSortKey === 'regularTickets' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
-        </th>
-        <th @click="sortMembersBy('commitTickets')">Commit
-          {{ memberSortKey === 'commitTickets' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
-        </th>
-        <th @click="sortMembersBy('checkedIn')">Checked In
-          {{ memberSortKey === 'checkedIn' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
-        </th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="member in memberPageItems" :key="member.id">
-        <td class="clickable-cell" @click="goToMember(member)">{{ member.name }}</td>
-        <td class="ticket-cell">
-          <span class="ticket-count">{{ member.regularTickets }}</span>
-          <input type="number" min="1" v-model.number="getTicketInput(member.id).regular"/>
-          <base-button variant="secondary" @click="addRegularTickets(member)">Add</base-button>
-        </td>
-        <td class="ticket-cell">
-          <span class="ticket-count">{{ member.commitTickets }}</span>
-          <input type="number" min="1" v-model.number="getTicketInput(member.id).commit"/>
-          <base-button variant="secondary" @click="addCommitTickets(member)">Add</base-button>
-        </td>
-        <td>{{ member.checkedIn ? 'Yes' : 'No' }}</td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-scroll" v-if="memberPageItems.length > 0">
+      <table class="members-table">
+        <thead>
+        <tr>
+          <th @click="sortMembersBy('name')">Name
+            {{ memberSortKey === 'name' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
+          </th>
+          <th @click="sortMembersBy('regularTickets')">Regular
+            {{ memberSortKey === 'regularTickets' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
+          </th>
+          <th @click="sortMembersBy('commitTickets')">Commit
+            {{ memberSortKey === 'commitTickets' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
+          </th>
+          <th @click="sortMembersBy('checkedIn')">Checked In
+            {{ memberSortKey === 'checkedIn' ? (memberSortDir === 'asc' ? '▲' : '▼') : '' }}
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="member in memberPageItems" :key="member.id">
+          <td class="clickable-cell" @click="goToMember(member)">{{ member.name }}</td>
+          <td class="ticket-cell">
+            <span class="ticket-count">{{ member.regularTickets }}</span>
+            <input type="number" min="1" v-model.number="getTicketInput(member.id).regular"/>
+            <base-button variant="secondary" @click="addRegularTickets(member)">Add</base-button>
+          </td>
+          <td class="ticket-cell">
+            <span class="ticket-count">{{ member.commitTickets }}</span>
+            <input type="number" min="1" v-model.number="getTicketInput(member.id).commit"/>
+            <base-button variant="secondary" @click="addCommitTickets(member)">Add</base-button>
+          </td>
+          <td>{{ member.checkedIn ? 'Yes' : 'No' }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
     <p v-else class="empty">No members found</p>
 
     <div class="pagination" v-if="memberTotalPages > 1">
@@ -360,25 +364,57 @@ function finalize(session: SessionResponse, sessionType: string) {
   margin-bottom: 1rem;
 }
 
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sessions-table {
+  table-layout: fixed;
+  min-width: 520px;
+}
+
+.sessions-table th:nth-child(1),
+.sessions-table td:nth-child(1) {
+  width: 130px;
+}
+
+.sessions-table th:nth-child(2),
+.sessions-table td:nth-child(2) {
+  width: 110px;
+}
+
+.sessions-table th:nth-child(3),
+.sessions-table td:nth-child(3) {
+  width: 90px;
+}
+
+.sessions-table th:nth-child(4),
+.sessions-table td:nth-child(4) {
+  width: 190px;
+}
+
 .members-table {
   table-layout: fixed;
+  min-width: 490px;
 }
 
 .members-table th:nth-child(1),
 .members-table td:nth-child(1) {
-  width: 26%;
+  width: 120px;
 }
 
 .members-table th:nth-child(2),
 .members-table td:nth-child(2),
 .members-table th:nth-child(3),
 .members-table td:nth-child(3) {
-  width: 28%;
+  width: 140px;
 }
 
 .members-table th:nth-child(4),
 .members-table td:nth-child(4) {
-  width: 18%;
+  width: 90px;
 }
 
 
@@ -414,6 +450,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 .ticket-cell {
   vertical-align: middle;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .ticket-count {
@@ -441,6 +478,7 @@ td {
 
 .actions {
   display: flex;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   align-items: center;
   min-height: 2.75rem;
