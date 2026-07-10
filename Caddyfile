@@ -1,0 +1,19 @@
+# SITE_ADDRESS override is for local testing (e.g. ":80" disables TLS);
+# on the server the default kicks in and Caddy fetches Let's Encrypt certs automatically.
+{$SITE_ADDRESS:lind-horst.com} {
+
+	# API: strip the /nofomo/api prefix and hand off to Spring Boot
+	handle_path /nofomo/api/* {
+		reverse_proxy app:8080
+	}
+
+	# SPA: serve the Vue build, falling back to index.html for client-side routes
+	handle /nofomo/* {
+		root * /srv
+		try_files {path} /nofomo/index.html
+		file_server
+	}
+
+	redir /nofomo /nofomo/
+	redir / /nofomo/
+}
