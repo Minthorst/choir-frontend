@@ -14,6 +14,7 @@ import {
 import BaseCard from "@/components/ui/BaseCard.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 import Modal from "@/components/ui/Modal.vue";
+import ResultModal from "@/components/ui/ResultModal.vue";
 
 const router = useRouter()
 
@@ -45,6 +46,8 @@ const ticketInputs = ref<Record<number, { regular: number; commit: number }>>({}
 const newMemberName = ref('')
 const createdSecretKey = ref('')
 const showCreatedModal = ref(false)
+const createMemberStatus = ref('pending')
+const createMemberError = ref('')
 
 function createNewMember() {
   const name = newMemberName.value.trim()
@@ -54,6 +57,9 @@ function createNewMember() {
     showCreatedModal.value = true
     newMemberName.value = ''
     loadMembers()
+  }).catch((e) => {
+    createMemberError.value = e.message
+    createMemberStatus.value = 'fail'
   })
 }
 
@@ -234,7 +240,7 @@ function finalize(session: SessionResponse, sessionType: string) {
       <tr v-for="session in pageItems" :key="session.id">
         <td>{{ formatDatetime(session.startTime) }}</td>
         <td>{{ session.sessionType }}</td>
-        <td class="attendees" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
+        <td class="clickable-cell" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
         <td class="actions">
           <template v-if="canFinalize(session)">
             <base-button variant="secondary" @click="finalize(session, 'REGULAR_ONLY')">Regular Only</base-button>
@@ -283,7 +289,7 @@ function finalize(session: SessionResponse, sessionType: string) {
       </thead>
       <tbody>
       <tr v-for="member in memberPageItems" :key="member.id">
-        <td class="member-name" @click="goToMember(member)">{{ member.name }}</td>
+        <td class="clickable-cell" @click="goToMember(member)">{{ member.name }}</td>
         <td class="ticket-cell">
           <span class="ticket-count">{{ member.regularTickets }}</span>
           <input type="number" min="1" v-model.number="getTicketInput(member.id).regular"/>
@@ -321,6 +327,7 @@ function finalize(session: SessionResponse, sessionType: string) {
     <p>Member created. Secret key:</p>
     <p class="secret-key">{{ createdSecretKey }}</p>
   </modal>
+  <result-modal :status="createMemberStatus" :message="createMemberError" @close="createMemberStatus = 'pending'"/>
 
   <modal :is-open="showMembersModal" @close="showMembersModal = false">
     <h3>Attending Members</h3>
@@ -332,25 +339,10 @@ function finalize(session: SessionResponse, sessionType: string) {
     </ul>
   </modal>
 
-  <modal class="success-modal" :is-open="finalizeStatus === 'success'" @close="finalizeStatus = 'pending'">
-    <p>{{ finalizeResponse }}</p>
-  </modal>
-  <modal class="fail-modal" :is-open="finalizeStatus === 'fail'" @close="finalizeStatus = 'pending'">
-    <p>{{ finalizeResponse }}</p>
-  </modal>
+  <result-modal :status="finalizeStatus" :message="finalizeResponse" @close="finalizeStatus = 'pending'"/>
 </template>
 
 <style scoped>
-.success-modal :deep(.modal-content) {
-  background-color: #15803d;
-  color: #ffffff;
-}
-
-.fail-modal :deep(.modal-content) {
-  background-color: #b91c1c;
-  color: #ffffff;
-}
-
 .base-card.sessions-card {
   max-width: 640px;
 }
@@ -364,22 +356,8 @@ function finalize(session: SessionResponse, sessionType: string) {
 }
 
 .member-search {
-  background-color: var(--bg);
-  border: 1px solid var(--row-active);
-  border-radius: var(--radius-sm);
-  color: var(--fg);
-  padding: 0.6rem 0.75rem;
-  font-size: 1rem;
-  font-family: inherit;
   width: 100%;
-  min-height: 2.75rem;
-  box-sizing: border-box;
   margin-bottom: 1rem;
-}
-
-.member-search:focus {
-  outline: none;
-  border-color: var(--accent);
 }
 
 .members-table {
@@ -404,14 +382,13 @@ function finalize(session: SessionResponse, sessionType: string) {
 }
 
 
-.member-name {
+.clickable-cell {
   cursor: pointer;
   text-decoration: underline;
   color: var(--fg);
 }
 
 .add-member-card {
-  max-width: 480px;
   margin-top: 1.5rem;
 }
 
@@ -422,22 +399,8 @@ function finalize(session: SessionResponse, sessionType: string) {
 }
 
 .add-member-form input {
-  background-color: var(--bg);
-  border: 1px solid var(--row-active);
-  border-radius: var(--radius-sm);
-  color: var(--fg);
-  padding: 0.6rem 0.75rem;
-  font-size: 1rem;
-  font-family: inherit;
   flex: 1;
   min-width: 0;
-  min-height: 2.75rem;
-  box-sizing: border-box;
-}
-
-.add-member-form input:focus {
-  outline: none;
-  border-color: var(--accent);
 }
 
 .secret-key {
@@ -459,21 +422,10 @@ function finalize(session: SessionResponse, sessionType: string) {
 }
 
 .ticket-cell input {
-  background-color: var(--bg);
-  border: 1px solid var(--row-active);
-  border-radius: var(--radius-sm);
-  color: var(--fg);
   padding: 0.3rem 0.4rem;
   font-size: 0.85rem;
-  font-family: inherit;
   width: 3rem;
   margin: 0 0.35rem;
-  box-sizing: border-box;
-}
-
-.ticket-cell input:focus {
-  outline: none;
-  border-color: var(--accent);
 }
 
 .ticket-cell :deep(.base-button) {
@@ -483,33 +435,8 @@ function finalize(session: SessionResponse, sessionType: string) {
   white-space: nowrap;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-th {
-  cursor: pointer;
-  user-select: none;
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 0.85rem;
-  padding: 0.5rem 0.4rem;
-  border-bottom: 1px solid var(--row-active);
-  white-space: nowrap;
-}
-
 td {
-  padding: 0.6rem 0.4rem;
-  font-size: 0.9rem;
   border-bottom: 1px solid var(--row-ghost);
-}
-
-.attendees {
-  cursor: pointer;
-  text-decoration: underline;
-  color: var(--fg);
 }
 
 .actions {
@@ -523,16 +450,6 @@ td {
   color: var(--muted);
   text-align: center;
   margin: 1rem 0;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  color: var(--muted);
-  font-size: 0.85rem;
 }
 
 .members-list {
@@ -556,12 +473,5 @@ td {
 
 .members-list li:hover {
   background-color: var(--row-ghost);
-}
-
-@media (max-width: 480px) {
-  th, td {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.25rem;
-  }
 }
 </style>

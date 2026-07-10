@@ -5,6 +5,7 @@ import {computed, onMounted, ref} from "vue";
 import {checkInMember, getMemberData} from "@/api/memberApi";
 import {checkInMemberById, getMemberNames, MemberNameResponse} from "@/api/doormanApi";
 import Modal from "@/components/ui/Modal.vue";
+import ResultModal from "@/components/ui/ResultModal.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 
 const scannerOn = ref(false)
@@ -94,7 +95,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 </script>
 
 <template>
-  <button class="scan-button" @click="toggleScanner">scan QR-Code</button>
+  <base-button class="scan-button" @click="toggleScanner">scan QR-Code</base-button>
   <div class="manual-checkin">
     <div class="member-select">
       <input
@@ -116,43 +117,13 @@ function extractSecretKeyFromUrl(rawUrl: string) {
   <modal :is-open="scannerOn" @close="toggleScanner">
     <qrcode-stream @detect="onDetect"></qrcode-stream>
   </modal>
-  <modal class="success-modal" :is-open="checkInSuccess === 'success'" @close="checkInSuccess='pending'">
-    <p>{{ checkInResponse }}</p>
-  </modal>
-  <modal class="fail-modal" :is-open="checkInSuccess === 'fail'" @close="checkInSuccess='pending'">
-    <p>{{ checkInResponse }}</p>
-  </modal>
-
+  <result-modal :status="checkInSuccess" :message="checkInResponse" @close="checkInSuccess = 'pending'"/>
 </template>
 
 <style scoped>
-.success-modal :deep(.modal-content) {
-  background-color: #15803d;
-  color: #ffffff;
-}
-
-.fail-modal :deep(.modal-content) {
-  background-color: #b91c1c;
-  color: #ffffff;
-}
-
 .scan-button {
   display: block;
   margin: 2rem auto;
-  background-color: var(--accent);
-  color: var(--fg);
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 0.6rem 1.25rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  min-height: 2.75rem;
-}
-
-.scan-button:hover {
-  background-color: var(--accent-hover);
 }
 
 :deep(video) {
@@ -175,21 +146,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 }
 
 .member-select input {
-  background-color: var(--bg);
-  border: 1px solid var(--row-active);
-  border-radius: var(--radius-sm);
-  color: var(--fg);
-  padding: 0.6rem 0.75rem;
-  font-size: 1rem;
-  font-family: inherit;
   width: 100%;
-  min-height: 2.75rem;
-  box-sizing: border-box;
-}
-
-.member-select input:focus {
-  outline: none;
-  border-color: var(--accent);
 }
 
 .dropdown {

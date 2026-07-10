@@ -44,13 +44,6 @@ const props = defineProps<{ memberData: Member, secretKey: string }>()
 </template>
 
 <style scoped>
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
 td {
   padding: 0.6rem 0.5rem;
   border-bottom: 1px solid var(--row-ghost);

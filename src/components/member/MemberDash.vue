@@ -9,6 +9,7 @@ import BaseButton from "@/components/ui/BaseButton.vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
 import QrCodeViewer from "@/components/member/QrCodeViewer.vue";
 import Modal from "@/components/ui/Modal.vue";
+import ResultModal from "@/components/ui/ResultModal.vue";
 
 const router = useRouter()
 const route = useRoute()
@@ -17,15 +18,15 @@ const loading = ref(true)
 const memberData = ref<Member | null>(null)
 const showQRCode = ref(false)
 const errorMessage = ref('')
-const showErrorModal = ref(false)
+const errorStatus = ref('pending')
 
 function showError(message: string) {
   errorMessage.value = message
-  showErrorModal.value = true
+  errorStatus.value = 'fail'
 }
 
 function closeErrorModal() {
-  showErrorModal.value = false
+  errorStatus.value = 'pending'
   if (!memberData.value) {
     router.push({name: 'member-login'})
   }
@@ -103,18 +104,11 @@ onMounted(async () => {
       </modal>
     </div>
   </base-card>
-  <modal class="fail-modal" :is-open="showErrorModal" @close="closeErrorModal">
-    <p>{{ errorMessage }}</p>
-  </modal>
+  <result-modal :status="errorStatus" :message="errorMessage" @close="closeErrorModal"/>
   <!--  TODO add paypal links-->
 </template>
 
 <style scoped>
-.fail-modal :deep(.modal-content) {
-  background-color: #b91c1c;
-  color: #ffffff;
-}
-
 .checkin-not-possible {
   cursor: not-allowed;
   background-color: grey;

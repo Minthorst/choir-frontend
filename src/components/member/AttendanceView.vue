@@ -124,30 +124,8 @@ function formatDatetime(iso: string) {
   color: rgba(255, 255, 255, 0.85);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-th {
-  cursor: pointer;
-  user-select: none;
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 0.85rem;
-  padding: 0.5rem 0.4rem;
-  border-bottom: 1px solid var(--row-active);
-  white-space: nowrap;
-}
-
 tbody tr:not(:last-child) td {
   border-bottom: 1px solid var(--row-ghost);
-}
-
-td {
-  padding: 0.6rem 0.4rem;
-  font-size: 0.9rem;
 }
 
 td:first-child {
@@ -158,22 +136,5 @@ td:first-child {
 p {
   color: var(--muted);
   text-align: center;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-@media (max-width: 480px) {
-  th, td {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.25rem;
-  }
 }
 </style>
