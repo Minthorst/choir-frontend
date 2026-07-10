@@ -3,7 +3,7 @@
 import {QrcodeStream} from "vue-qrcode-reader";
 import {computed, onMounted, ref} from "vue";
 import {checkInMember, getMemberData} from "@/api/memberApi";
-import {checkInMemberById, getMemberNames, MemberNameResponse} from "@/api/doormanApi";
+import {checkInMemberById, getCheckedInMemberNames, getMemberNames, MemberNameResponse} from "@/api/doormanApi";
 import Modal from "@/components/ui/Modal.vue";
 import ResultModal from "@/components/ui/ResultModal.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
@@ -14,14 +14,22 @@ const checkInResponse = ref('')
 const checkInSuccess = ref('pending')
 
 const members = ref<MemberNameResponse[]>([])
+const checkedInMembers = ref<MemberNameResponse[]>([])
 const searchText = ref('')
 const selectedMemberId = ref<number | null>(null)
 const showDropdown = ref(false)
+
+function fetchCheckedInMembers() {
+  getCheckedInMemberNames().then((list) => {
+    checkedInMembers.value = list
+  })
+}
 
 onMounted(() => {
   getMemberNames().then((list) => {
     members.value = list
   })
+  fetchCheckedInMembers()
 })
 
 const filteredMembers = computed(() => {
@@ -54,6 +62,7 @@ function checkInSelectedMember() {
         checkInResponse.value = result.name + ' ' + verb + ' with ' + result.regularTickets + ' Regular and ' + result.commitTickets + ' Commit Tickets remaining'
         checkInSuccess.value = 'success'
         resetSelection()
+        fetchCheckedInMembers()
       })
       .catch((e) => {
         checkInResponse.value = e.message
@@ -79,10 +88,12 @@ function onDetect(detectedCodes: any) {
   checkInMember(extractSecretKeyFromUrl(detectedCodes[0].rawValue)).then(() => {
     constructQRScannerResponse(secretKey)
     checkInSuccess.value = 'success'
+    fetchCheckedInMembers()
   }).catch((e) => {
     if (e.message.startsWith("Member is already checked in to current Session")) {
       constructQRScannerResponse(secretKey)
       checkInSuccess.value = 'success'
+      fetchCheckedInMembers()
     } else {
       checkInResponse.value = e.message
       checkInSuccess.value = 'fail'
@@ -128,6 +139,15 @@ function extractSecretKeyFromUrl(rawUrl: string) {
   <modal :is-open="scannerOn" @close="toggleScanner">
     <qrcode-stream @detect="onDetect"></qrcode-stream>
   </modal>
+  <base-card>
+    <template #header>
+      <h3>Currently Checked In</h3>
+    </template>
+    <p v-if="!checkedInMembers.length" class="empty-state">no one is checked in yet</p>
+    <ul v-else class="checked-in-list">
+      <li v-for="m in checkedInMembers" :key="m.id">{{ m.name }}</li>
+    </ul>
+  </base-card>
   <result-modal :status="checkInSuccess" :message="checkInResponse" @close="checkInSuccess = 'pending'"/>
 </template>
 
@@ -183,5 +203,26 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 
 .dropdown li:hover {
   background-color: var(--row-ghost);
+}
+
+.checked-in-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checked-in-list li {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--row);
+}
+
+.empty-state {
+  color: var(--muted);
+  text-align: center;
+  margin: 1rem 0;
 }
 </style>

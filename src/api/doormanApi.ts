@@ -20,6 +20,14 @@ export async function getMemberNames(): Promise<MemberNameResponse[]> {
     return response.json()
 }
 
+export async function getCheckedInMemberNames(): Promise<MemberNameResponse[]> {
+    const response = await fetch(`${API_BASE}/doorman/checkedin`, {credentials: 'include'})
+    if (!response.ok) {
+        throw new Error(await response.text())
+    }
+    return response.json()
+}
+
 export async function checkInMemberById(id: number): Promise<DoormanCheckInResponse> {
     const response = await fetch(`${API_BASE}/doorman/checkin/${id}`, {
         method: 'POST',
