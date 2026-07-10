@@ -229,7 +229,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 </script>
 
 <template>
-  <base-card class="sessions-card">
+  <base-card collapsible :default-open="false" class="sessions-card">
     <template #header>
       <h3>Sessions</h3>
     </template>
@@ -265,7 +265,7 @@ function finalize(session: SessionResponse, sessionType: string) {
     </div>
   </base-card>
 
-  <base-card class="members-card">
+  <base-card collapsible :default-open="false" class="members-card">
     <template #header>
       <h3>Members</h3>
     </template>
@@ -305,7 +305,7 @@ function finalize(session: SessionResponse, sessionType: string) {
     </div>
   </base-card>
 
-  <base-card class="add-member-card">
+  <base-card collapsible :default-open="false" class="add-member-card">
     <template #header>
       <h3>Add Member</h3>
     </template>

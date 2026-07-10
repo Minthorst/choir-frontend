@@ -8,16 +8,24 @@ import BaseButton from "@/components/ui/BaseButton.vue";
 import Modal from "@/components/ui/Modal.vue";
 
 const props = defineProps<{ memberData: Member, secretKey: string }>()
+
+const checkedIn = computed(() => {
+      if (props.memberData.checkedIn) {
+        return "Hell Yeah"
+      } else {
+        return "nope"
+      }
+    }
+)
 </script>
 
 <template>
-  <base-card>
+  <base-card collapsible :default-open="false" :class="{checkedIn: memberData.checkedIn}">
+    <template #header>
+      <h3>{{ memberData.name }}</h3>
+    </template>
     <table>
       <tbody>
-      <tr>
-        <td>Name:</td>
-        <td>{{ memberData.name }}</td>
-      </tr>
       <tr>
         <td>Regular Tickets:</td>
         <td>{{ memberData.regularTickets }}</td>
@@ -32,13 +40,16 @@ const props = defineProps<{ memberData: Member, secretKey: string }>()
       </tr>
       <tr>
         <td>Currently checked in:</td>
-        <td>{{ memberData.checkedIn }}</td>
+        <td>{{ checkedIn }}</td>
       </tr>
       </tbody>
     </table>
   </base-card>
-  <base-card>
-    <attendance-view :attendance="memberData.pastAttendance" :isCheckedIn="memberData.checkedIn"></attendance-view>
+  <base-card collapsible :default-open="false">
+    <template #header>
+      <h3>Attendances</h3>
+    </template>
+    <attendance-view :attendance="memberData.pastAttendance"></attendance-view>
   </base-card>
 
 </template>
@@ -72,5 +83,23 @@ td:last-child {
     font-size: 0.85rem;
     padding: 0.5rem 0.25rem;
   }
+}
+
+.checkedIn {
+  background-color: #15803d;
+  border-color: #22c55e;
+  color: #ffffff;
+}
+
+.checkedIn td {
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+.checkedIn td:first-child {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.checkedIn td:last-child {
+  color: #ffffff;
 }
 </style>

@@ -4,7 +4,7 @@ import {computed, ref} from "vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
 
-const props = defineProps<{ attendance: Attendance[], isCheckedIn: boolean }>()
+const props = defineProps<{ attendance: Attendance[] }>()
 
 const currentPage = ref(1)
 const pageSize = 5
@@ -65,7 +65,7 @@ function formatDatetime(iso: string) {
 </script>
 
 <template>
-  <base-card :class="{checkedIn: isCheckedIn}">
+  <base-card>
     <table v-if="attendance && attendance.length > 0">
       <thead>
       <tr>
@@ -93,37 +93,6 @@ function formatDatetime(iso: string) {
 </template>
 
 <style scoped>
-.checkedIn {
-  background-color: #15803d;
-  border-color: #22c55e;
-  color: #ffffff;
-}
-
-.checkedIn table {
-  color: #ffffff;
-}
-
-.checkedIn td:first-child {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.checkedIn th {
-  color: rgba(255, 255, 255, 0.75);
-  border-bottom-color: rgba(255, 255, 255, 0.3);
-}
-
-.checkedIn tbody tr:not(:last-child) td {
-  border-bottom-color: rgba(255, 255, 255, 0.3);
-}
-
-.checkedIn .pagination span {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.checkedIn p {
-  color: rgba(255, 255, 255, 0.85);
-}
-
 tbody tr:not(:last-child) td {
   border-bottom: 1px solid var(--row-ghost);
 }

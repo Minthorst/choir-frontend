@@ -1,16 +1,36 @@
+<script setup lang="ts">
+import {ref} from "vue";
+
+const props = withDefaults(defineProps<{ collapsible?: boolean, defaultOpen?: boolean }>(), {
+  collapsible: false,
+  defaultOpen: true
+})
+
+const open = ref(props.defaultOpen)
+
+function toggle() {
+  if (props.collapsible) open.value = !open.value
+}
+</script>
+
 <template>
   <div class="base-card">
-    <header v-if="$slots.header" class="card-header">
+    <header v-if="$slots.header" class="card-header" :class="{collapsible}" @click="toggle">
       <slot name="header"></slot>
+      <span v-if="collapsible" class="chevron" :class="{open}">▾</span>
     </header>
 
-    <main class="card-body">
-      <slot></slot>
-    </main>
+    <div class="collapse-wrapper" :class="{open: !collapsible || open}">
+      <div class="collapse-inner">
+        <main class="card-body">
+          <slot></slot>
+        </main>
 
-    <footer v-if="$slots.footer" class="card-footer">
-      <slot name="footer"></slot>
-    </footer>
+        <footer v-if="$slots.footer" class="card-footer">
+          <slot name="footer"></slot>
+        </footer>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -36,6 +56,38 @@
   margin-bottom: 0.75rem;
   display: flex;
   justify-content: center;
+}
+
+.card-header.collapsible {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.chevron {
+  display: inline-block;
+  margin-left: 0.5rem;
+  color: var(--muted);
+  transition: transform 0.25s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.collapse-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.collapse-wrapper.open {
+  grid-template-rows: 1fr;
+}
+
+.collapse-inner {
+  overflow: hidden;
 }
 
 .card-body {
