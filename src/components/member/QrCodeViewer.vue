@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import {computed, shallowRef} from "vue";
+import {computed} from "vue";
+import {useRouter} from "vue-router";
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 
-
-
 const props = defineProps<{ secretKey: string }>()
-const url = computed(() => `${window.location.origin}/member/${props.secretKey}`)
-const text = shallowRef(url)
-const qrcode = useQRCode(text.value)
-
+const router = useRouter()
+const url = computed(() =>
+    window.location.origin + router.resolve({name: 'member-dash', params: {secretKey: props.secretKey}}).href)
+const qrcode = useQRCode(url)
 </script>
 
 <template>

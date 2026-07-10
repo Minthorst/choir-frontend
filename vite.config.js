@@ -6,6 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/nofomo/',
   plugins: [
     vue(),
     vueDevTools(),
@@ -13,6 +14,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  server: {
+    proxy: {
+      '/nofomo/api': {
+        target: 'http://localhost:8080',
+        rewrite: (path) => path.replace(/^\/nofomo\/api/, ''),
+      },
     },
   },
 })
