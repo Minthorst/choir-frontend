@@ -15,7 +15,7 @@ onMounted(() => {
 
 async function handleLogout() {
   await logout()
-  router.push('/member')
+  router.push('/login')
 }
 </script>
 

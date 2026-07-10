@@ -16,7 +16,7 @@ const routes = [
     { path: '/login', name: 'login', component: PasswordGate },
 ]
 
-const ROUTE_ROLE = {
+export const ROUTE_ROLE = {
     'member-login': 'MEMBER',
     'member-dash': 'MEMBER',
     'doorman': 'DOORMAN',

@@ -3,13 +3,12 @@ import {ref} from "vue";
 import {useRouter} from "vue-router";
 import {useAuth} from "@/composables/useAuth";
 import {consumePendingRedirect} from "@/router/pendingRedirect";
+import {ROUTE_ROLE} from "@/router/index.js";
 import BaseCard from "@/components/ui/BaseCard.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 
 const router = useRouter()
 const {login, hasRole} = useAuth()
-
-const redirect = consumePendingRedirect()
 
 const USERNAMES_BY_PRIORITY = ['admin', 'doorman', 'member']
 
@@ -26,7 +25,9 @@ async function submit() {
       } else if (hasRole('DOORMAN')) {
         router.push('/doorman')
       } else {
-        router.push(redirect)
+        const target = consumePendingRedirect()
+        const requiredRole = ROUTE_ROLE[router.resolve(target).name]
+        router.push(!requiredRole || hasRole(requiredRole) ? target : '/member')
       }
       return
     }
