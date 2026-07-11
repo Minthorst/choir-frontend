@@ -17,19 +17,30 @@ const secretKey = Array.isArray(route.params.secretKey) ? route.params.secretKey
 const loading = ref(true)
 const memberData = ref<Member | null>(null)
 const showQRCode = ref(false)
-const errorMessage = ref('')
-const errorStatus = ref('pending')
+const showCheckInConfirm = ref(false)
+const resultMessage = ref('')
+const resultStatus = ref('pending')
 
 function showError(message: string) {
-  errorMessage.value = message
-  errorStatus.value = 'fail'
+  resultMessage.value = message
+  resultStatus.value = 'fail'
 }
 
-function closeErrorModal() {
-  errorStatus.value = 'pending'
+function showSuccess(message: string) {
+  resultMessage.value = message
+  resultStatus.value = 'success'
+}
+
+function closeResultModal() {
+  resultStatus.value = 'pending'
   if (!memberData.value) {
     router.push({name: 'member-login'})
   }
+}
+
+function confirmCheckIn() {
+  showCheckInConfirm.value = false
+  checkInAndFetchMember()
 }
 
 function toggleQRCode() {
@@ -55,7 +66,10 @@ const memberCheckedIn = computed(() =>
 function checkInAndFetchMember() {
   loading.value = true
   checkInMember(secretKey)
-      .then(() => getMemberInfo())
+      .then(() => {
+        getMemberInfo()
+        showSuccess('You have been checked in successfully!')
+      })
       .catch((error) => {
         loading.value = false
         showError(error.message)
@@ -102,11 +116,19 @@ onMounted(async () => {
     <template #header><h3>Check In</h3></template>
     <div class="vertical-button-group">
       <base-button :class="{'checkin-not-possible': memberCheckedIn}" :disabled="memberCheckedIn"
-                   @click="checkInAndFetchMember">CHECK IN
+                   @click="showCheckInConfirm = true">CHECK IN
       </base-button>
       <BaseButton @click="toggleQRCode()">QR-CODE</BaseButton>
       <modal :is-open="showQRCode" @close="toggleQRCode">
         <qr-code-viewer :secret-key="secretKey"></qr-code-viewer>
+      </modal>
+      <modal :is-open="showCheckInConfirm" @close="showCheckInConfirm = false">
+        <h3>Confirm Check In</h3>
+        <p>Are you sure you want to check in?</p>
+        <div class="confirm-actions">
+          <base-button variant="secondary" @click="showCheckInConfirm = false">Cancel</base-button>
+          <base-button @click="confirmCheckIn">Yes, Check In</base-button>
+        </div>
       </modal>
     </div>
   </base-card>
@@ -134,13 +156,20 @@ onMounted(async () => {
     <p class="ticket-note">*Cash vor Ort und Banküberweisung auch möglich :)</p>
   </base-card>
 
-  <result-modal :status="errorStatus" :message="errorMessage" @close="closeErrorModal"/>
+  <result-modal :status="resultStatus" :message="resultMessage" @close="closeResultModal"/>
 </template>
 
 <style scoped>
 .checkin-not-possible {
   cursor: not-allowed;
   background-color: grey;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
 }
 
 .base-button:disabled:hover {
