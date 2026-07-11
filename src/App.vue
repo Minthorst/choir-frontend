@@ -10,6 +10,11 @@ import BaseCard from "@/components/ui/BaseCard.vue";
     <the-header #header @select="activeComponent = $event"/>
   </base-card>
   <router-view/>
+  <footer class="legal-footer">
+    <router-link to="/impressum">Impressum</router-link>
+    <span>·</span>
+    <router-link to="/datenschutz">Datenschutz</router-link>
+  </footer>
   </div>
 </template>
 
@@ -23,6 +28,22 @@ import BaseCard from "@/components/ui/BaseCard.vue";
   box-sizing: border-box;
   padding: 1.5rem 1rem;
   gap: 1.5rem;
+}
+
+.legal-footer {
+  margin-top: auto;
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.legal-footer a,
+.legal-footer span {
+  color: var(--muted);
+}
+
+.legal-footer a:hover {
+  color: var(--accent);
 }
 
 .header {

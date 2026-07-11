@@ -4,6 +4,8 @@ import AdminDash from "@/components/admin/AdminDash.vue";
 import DoormanDash from "@/components/doorMan/DoormanDash.vue";
 import MemberLogin from "@/components/member/MemberLogin.vue";
 import PasswordGate from "@/components/PasswordGate.vue";
+import ImpressumPage from "@/components/legal/ImpressumPage.vue";
+import DatenschutzPage from "@/components/legal/DatenschutzPage.vue";
 import {useAuth} from "@/composables/useAuth";
 import {setPendingRedirect} from "@/router/pendingRedirect";
 import {setUnauthorizedHandler} from "@/api/http";
@@ -15,6 +17,8 @@ const routes = [
     { path: '/admin', name: 'admin', component: AdminDash },
     { path: '/doorman', name: 'doorman', component: DoormanDash },
     { path: '/login', name: 'login', component: PasswordGate },
+    { path: '/impressum', name: 'impressum', component: ImpressumPage },
+    { path: '/datenschutz', name: 'datenschutz', component: DatenschutzPage },
 ]
 
 export const ROUTE_ROLE = {
