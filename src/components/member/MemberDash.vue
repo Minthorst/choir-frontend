@@ -8,6 +8,7 @@ import {checkInMember, getMemberData} from "@/api/memberApi";
 import BaseButton from "@/components/ui/BaseButton.vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
 import QrCodeViewer from "@/components/member/QrCodeViewer.vue";
+import ScheduleCalendar from "@/components/member/ScheduleCalendar.vue";
 import Modal from "@/components/ui/Modal.vue";
 import ResultModal from "@/components/ui/ResultModal.vue";
 
@@ -110,8 +111,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <member-view v-if="memberData" :member-data="memberData" :secret-key="secretKey"></member-view>
-  <p v-else>loading...</p>
   <base-card collapsible :default-open="false">
     <template #header><h3>Check In</h3></template>
     <div class="vertical-button-group">
@@ -131,6 +130,12 @@ onMounted(async () => {
         </div>
       </modal>
     </div>
+  </base-card>
+  <member-view v-if="memberData" :member-data="memberData" :secret-key="secretKey"></member-view>
+  <p v-else>loading...</p>pushed my changes and did the work
+  <base-card collapsible :default-open="false">
+    <template #header><h3>Schedule</h3></template>
+    <schedule-calendar></schedule-calendar>
   </base-card>
 
   <base-card collapsible :default-open="false">
