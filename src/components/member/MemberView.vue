@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import {Member} from "@/types/member";
 import AttendanceView from "@/components/member/AttendanceView.vue";
-import QrCodeViewer from "@/components/member/QrCodeViewer.vue";
-import {computed, ref} from "vue";
+import {computed} from "vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
-import BaseButton from "@/components/ui/BaseButton.vue";
-import Modal from "@/components/ui/Modal.vue";
 
 const props = defineProps<{ memberData: Member, secretKey: string }>()
 
@@ -17,12 +14,24 @@ const checkedIn = computed(() => {
       }
     }
 )
+
+const checkInDateTime = computed(() => {
+  if (!props.memberData.checkedIn || props.memberData.pastAttendance.length === 0) {
+    return null
+  }
+  const latest = props.memberData.pastAttendance.reduce((a, b) =>
+      new Date(a.dateTime).getTime() >= new Date(b.dateTime).getTime() ? a : b)
+  return new Intl.DateTimeFormat('de-DE', {dateStyle: 'medium', timeStyle: 'short'}).format(new Date(latest.dateTime))
+})
 </script>
 
 <template>
   <base-card collapsible :default-open="false" :class="{checkedIn: memberData.checkedIn}">
     <template #header>
-      <h3>{{ memberData.name }}</h3>
+      <div class="header-row">
+        <h3>{{ memberData.name }}</h3>
+        <h4 v-if="checkInDateTime">Checked in: {{ checkInDateTime }}</h4>
+      </div>
     </template>
     <table>
       <tbody>
@@ -83,6 +92,24 @@ td:last-child {
     font-size: 0.85rem;
     padding: 0.5rem 0.25rem;
   }
+}
+
+.header-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.header-row h3,
+.header-row h4 {
+  margin: 0;
+}
+
+.header-row h4 {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .checkedIn {
