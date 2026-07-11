@@ -29,7 +29,7 @@ const checkInDateTime = computed(() => {
   <base-card collapsible :default-open="false" :class="{checkedIn: memberData.checkedIn}">
     <template #header>
       <div class="header-row">
-        <h3>{{ memberData.name }}</h3>
+        <h3>👤 {{ memberData.name }}</h3>
         <h4 v-if="checkInDateTime">Checked in: {{ checkInDateTime }}</h4>
       </div>
     </template>
@@ -56,7 +56,7 @@ const checkInDateTime = computed(() => {
   </base-card>
   <base-card collapsible :default-open="false">
     <template #header>
-      <h3>Attendances</h3>
+      <h3>📋 Attendances</h3>
     </template>
     <attendance-view :attendance="memberData.pastAttendance"></attendance-view>
   </base-card>

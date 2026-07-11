@@ -11,6 +11,9 @@ import QrCodeViewer from "@/components/member/QrCodeViewer.vue";
 import ScheduleCalendar from "@/components/member/ScheduleCalendar.vue";
 import Modal from "@/components/ui/Modal.vue";
 import ResultModal from "@/components/ui/ResultModal.vue";
+import {provideAccordionGroup} from "@/composables/useAccordionGroup";
+
+provideAccordionGroup()
 
 const router = useRouter()
 const route = useRoute()
@@ -59,6 +62,10 @@ function buyTicket(type: string) {
   if (url) {
     window.open(url, '')
   }
+}
+
+function openPlayer() {
+  window.open('https://trych.dev/nofomo', '')
 }
 
 const memberCheckedIn = computed(() =>
@@ -112,7 +119,7 @@ onMounted(async () => {
 
 <template>
   <base-card collapsible :default-open="false">
-    <template #header><h3>Check In</h3></template>
+    <template #header><h3>🚪 Check In</h3></template>
     <div class="vertical-button-group">
       <base-button :class="{'checkin-not-possible': memberCheckedIn}" :disabled="memberCheckedIn"
                    @click="showCheckInConfirm = true">CHECK IN
@@ -134,12 +141,17 @@ onMounted(async () => {
   <member-view v-if="memberData" :member-data="memberData" :secret-key="secretKey"></member-view>
   <p v-else>loading...</p>
   <base-card collapsible :default-open="false">
-    <template #header><h3>Schedule</h3></template>
+    <template #header><h3>📅 Schedule</h3></template>
     <schedule-calendar></schedule-calendar>
   </base-card>
 
   <base-card collapsible :default-open="false">
-    <template #header><h3>Buy Tickets</h3></template>
+    <template #header><h3>🎵 Player</h3></template>
+    <base-button @click="openPlayer">Open Player</base-button>
+  </base-card>
+
+  <base-card collapsible :default-open="false">
+    <template #header><h3>🎟️ Buy Tickets</h3></template>
     <div>
       <p>Bitte gib bei der Paypal Zahlung deinen Namen und das gewünschte Ticket mit an</p>
     </div>

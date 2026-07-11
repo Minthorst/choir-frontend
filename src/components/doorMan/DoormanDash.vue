@@ -109,13 +109,13 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 <template>
   <base-card>
     <template #header>
-      <h3>QR-CheckIn</h3>
+      <h3>📷 QR-CheckIn</h3>
     </template>
     <base-button class="scan-button" @click="toggleScanner">scan QR-Code</base-button>
   </base-card>
   <base-card>
     <template #header>
-      <h3>Manual CheckIn by name</h3>
+      <h3>✍️ Manual CheckIn by name</h3>
     </template>
     <div class="manual-checkin">
       <div class="member-select">
@@ -141,7 +141,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
   </modal>
   <base-card>
     <template #header>
-      <h3>Currently Checked In</h3>
+      <h3>👥 Currently Checked In</h3>
     </template>
     <p v-if="!checkedInMembers.length" class="empty-state">no one is checked in yet</p>
     <ul v-else class="checked-in-list">

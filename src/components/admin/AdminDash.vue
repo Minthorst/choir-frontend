@@ -231,7 +231,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 <template>
   <base-card collapsible :default-open="false" class="sessions-card">
     <template #header>
-      <h3>Sessions</h3>
+      <h3>🗓️ Sessions</h3>
     </template>
     <div class="table-scroll" v-if="!loading && pageItems.length > 0">
       <table class="sessions-table">
@@ -267,7 +267,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 
   <base-card collapsible :default-open="false" class="members-card">
     <template #header>
-      <h3>Members</h3>
+      <h3>👥 Members</h3>
     </template>
     <input
         type="text"
@@ -307,7 +307,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 
   <base-card collapsible :default-open="false" class="add-member-card">
     <template #header>
-      <h3>Add Member</h3>
+      <h3>➕ Add Member</h3>
     </template>
     <form class="add-member-form" @submit.prevent="createNewMember">
       <input type="text" v-model="newMemberName" placeholder="Member name"/>
