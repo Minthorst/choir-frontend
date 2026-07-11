@@ -62,6 +62,15 @@ function pageBack() {
 function formatDatetime(iso: string) {
   return new Intl.DateTimeFormat('de-DE', {dateStyle: 'medium', timeStyle: 'short'}).format(new Date(iso))
 }
+
+const STATUS_LABEL: Record<string, string> = {
+  PRESENT: '✅ Present',
+  NO_SHOW: '🎟️ No-show (ticket charged)'
+}
+
+function statusLabel(status: string) {
+  return STATUS_LABEL[status] ?? status
+}
 </script>
 
 <template>
@@ -78,7 +87,7 @@ function formatDatetime(iso: string) {
       <tr v-for="a in pageItems" :key="a.dateTime">
         <td>{{ attendanceNumber(a) }}.</td>
         <td>{{ formatDatetime(a.dateTime) }}</td>
-        <td>{{ a.status }}</td>
+        <td>{{ statusLabel(a.status) }}</td>
       </tr>
       </tbody>
     </table>

@@ -200,6 +200,18 @@ function canFinalize(session: SessionResponse) {
   return session.sessionType === 'NONE' || session.sessionType === 'AUTO_CLOSE'
 }
 
+const SESSION_TYPE_LABEL: Record<string, string> = {
+  NONE: '🎤 In Progress',
+  AUTO_CLOSE: '⏳ Awaiting Finalization',
+  REGULAR_ONLY: '✅ Regular (Finalized)',
+  COMMIT: '🎟️ Commit (Finalized)',
+  FREE: '🆓 Free (Finalized)'
+}
+
+function sessionTypeLabel(sessionType: string) {
+  return SESSION_TYPE_LABEL[sessionType] ?? sessionType
+}
+
 function viewMembers(session: SessionResponse) {
   selectedSession.value = session
   getAttendingMembers(session.id).then((list) => {
@@ -216,7 +228,9 @@ function openSessionDetail(session: SessionResponse) {
 function finalize(session: SessionResponse, sessionType: string) {
   finalizeSession(session.id, sessionType)
       .then((result) => {
-        finalizeResponse.value = `Finalized: ${result.presentMembers} present, ${result.absentCommitMembers} absent commit members charged`
+        finalizeResponse.value = sessionType === 'FREE'
+            ? `Finalized as Free: ${result.presentMembers} member(s) refunded a regular ticket`
+            : `Finalized: ${result.presentMembers} present, ${result.absentCommitMembers} absent commit members charged`
         finalizeStatus.value = 'success'
         showSessionModal.value = false
         loadSessions()
@@ -249,7 +263,7 @@ function finalize(session: SessionResponse, sessionType: string) {
           <td>{{ formatDatetime(session.startTime) }}</td>
           <td :class="{ 'needs-action': canFinalize(session) }"
               @click="canFinalize(session) && openSessionDetail(session)">
-            {{ session.sessionType }}
+            {{ sessionTypeLabel(session.sessionType) }}
           </td>
           <td class="clickable-cell" @click="viewMembers(session)">{{ session.amountOfAttendees }}</td>
         </tr>
@@ -333,10 +347,11 @@ function finalize(session: SessionResponse, sessionType: string) {
 
   <modal :is-open="showSessionModal" @close="showSessionModal = false">
     <h3 v-if="selectedSession">{{ formatDatetime(selectedSession.startTime) }}</h3>
-    <p class="session-status" v-if="selectedSession">Status: {{ selectedSession.sessionType }}</p>
+    <p class="session-status" v-if="selectedSession">Status: {{ sessionTypeLabel(selectedSession.sessionType) }}</p>
     <div class="session-actions" v-if="selectedSession && canFinalize(selectedSession)">
       <base-button variant="secondary" @click="finalize(selectedSession, 'REGULAR_ONLY')">Regular Only</base-button>
       <base-button variant="secondary" @click="finalize(selectedSession, 'COMMIT')">Commit</base-button>
+      <base-button variant="secondary" @click="finalize(selectedSession, 'FREE')">Free</base-button>
     </div>
   </modal>
 

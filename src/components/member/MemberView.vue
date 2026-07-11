@@ -56,7 +56,7 @@ const checkInDateTime = computed(() => {
   </base-card>
   <base-card collapsible :default-open="false">
     <template #header>
-      <h3>📋 Attendances</h3>
+      <h3>📋 Attendance Log</h3>
     </template>
     <attendance-view :attendance="memberData.pastAttendance"></attendance-view>
   </base-card>
