@@ -493,6 +493,12 @@ td {
   padding: 0.6rem 0.5rem;
   border-bottom: 1px solid var(--row-ghost);
   cursor: pointer;
+  text-decoration: underline;
+}
+
+.members-list li.empty {
+  text-decoration: none;
+  cursor: default;
 }
 
 .members-list li:last-child {
