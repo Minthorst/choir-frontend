@@ -118,6 +118,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <template v-if="memberData">
   <base-card collapsible :default-open="true">
     <template #header><h3>🚪 Check In</h3></template>
     <div class="vertical-button-group">
@@ -136,8 +137,7 @@ onMounted(async () => {
       </modal>
     </div>
   </base-card>
-  <member-view v-if="memberData" :member-data="memberData" :secret-key="secretKey"></member-view>
-  <p v-else>loading...</p>
+  <member-view :member-data="memberData" :secret-key="secretKey"></member-view>
   <base-card collapsible :default-open="false">
     <template #header><h3>🎟️ Buy Tickets</h3></template>
     <div>
@@ -170,10 +170,8 @@ onMounted(async () => {
     <template #header><h3>📅 Schedule</h3></template>
     <schedule-calendar></schedule-calendar>
   </base-card>
-
-
-
-
+  </template>
+  <p v-else-if="loading">loading...</p>
 
   <result-modal :status="resultStatus" :message="resultMessage" @close="closeResultModal"/>
 </template>
