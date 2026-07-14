@@ -118,7 +118,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <base-card collapsible :default-open="false">
+  <base-card collapsible :default-open="true">
     <template #header><h3>🚪 Check In</h3></template>
     <div class="vertical-button-group">
       <base-button :class="{'checkin-not-possible': memberCheckedIn}" :disabled="memberCheckedIn"
@@ -141,16 +141,6 @@ onMounted(async () => {
   <member-view v-if="memberData" :member-data="memberData" :secret-key="secretKey"></member-view>
   <p v-else>loading...</p>
   <base-card collapsible :default-open="false">
-    <template #header><h3>📅 Schedule</h3></template>
-    <schedule-calendar></schedule-calendar>
-  </base-card>
-
-  <base-card collapsible :default-open="false">
-    <template #header><h3>🎵 Player</h3></template>
-    <base-button @click="openPlayer">Open Player</base-button>
-  </base-card>
-
-  <base-card collapsible :default-open="false">
     <template #header><h3>🎟️ Buy Tickets</h3></template>
     <div>
       <p>Bitte gib bei der Paypal Zahlung deinen Namen und das gewünschte Ticket mit an</p>
@@ -172,6 +162,20 @@ onMounted(async () => {
     </div>
     <p class="ticket-note">*Cash vor Ort und Banküberweisung auch möglich :)</p>
   </base-card>
+
+  <base-card collapsible :default-open="false">
+    <template #header><h3>🎵 Player</h3></template>
+    <base-button @click="openPlayer">Open Player</base-button>
+  </base-card>
+
+  <base-card collapsible :default-open="false">
+    <template #header><h3>📅 Schedule</h3></template>
+    <schedule-calendar></schedule-calendar>
+  </base-card>
+
+
+
+
 
   <result-modal :status="resultStatus" :message="resultMessage" @close="closeResultModal"/>
 </template>

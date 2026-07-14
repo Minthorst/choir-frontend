@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, inject, ref} from "vue";
-import {accordionGroupKey, nextAccordionCardId} from "@/composables/useAccordionGroup";
+import {accordionGroupKey, nextAccordionCardId, provideAccordionGroup} from "@/composables/useAccordionGroup";
 
 const props = withDefaults(defineProps<{ collapsible?: boolean, defaultOpen?: boolean }>(), {
   collapsible: false,
@@ -13,6 +13,8 @@ const cardId = nextAccordionCardId()
 if (group && props.collapsible && props.defaultOpen && group.activeId.value === null) {
   group.setActive(cardId)
 }
+
+provideAccordionGroup()
 
 const localOpen = ref(props.defaultOpen)
 
