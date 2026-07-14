@@ -44,8 +44,19 @@ async function submit() {
   <base-card>
     <template #header><h3>Password required</h3></template>
     <form @submit.prevent="submit">
-      <label>Password:</label>
-      <input type="password" v-model="password" autofocus/>
+      <label for="site-password">Password:</label>
+      <!-- hidden username keeps this credential separate from the member key in password managers -->
+      <input
+          type="text"
+          name="username"
+          autocomplete="username"
+          value="site"
+          class="hidden-username"
+          tabindex="-1"
+          aria-hidden="true"
+      />
+      <input id="site-password" type="password" name="password" autocomplete="current-password"
+             v-model="password" autofocus/>
       <base-button type="submit">Unlock</base-button>
     </form>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
@@ -62,6 +73,15 @@ form {
 
 input {
   width: 100%;
+}
+
+.hidden-username {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .error {
