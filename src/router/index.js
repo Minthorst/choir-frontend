@@ -15,7 +15,7 @@ const routes = [
     { path: '/member', name: 'member-login', component: MemberLogin },
     {path: '/member/:secretKey', name: 'member-dash', component: MemberDash},
     { path: '/admin', name: 'admin', component: AdminDash },
-    { path: '/doorman', name: 'doorman', component: DoormanDash },
+    { path: '/doorhuman', name: 'doorman', component: DoormanDash },
     { path: '/login', name: 'login', component: PasswordGate },
     { path: '/impressum', name: 'impressum', component: ImpressumPage },
     { path: '/datenschutz', name: 'datenschutz', component: DatenschutzPage },
