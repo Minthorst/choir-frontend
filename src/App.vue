@@ -1,7 +1,13 @@
 <script setup lang="ts">
 
+import {ref} from "vue";
 import TheHeader from "@/components/TheHeader.vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
+import FeedbackModal from "@/components/FeedbackModal.vue";
+import {useAuth} from "@/composables/useAuth";
+
+const {authenticated} = useAuth()
+const showFeedback = ref(false)
 </script>
 
 <template>
@@ -14,7 +20,12 @@ import BaseCard from "@/components/ui/BaseCard.vue";
     <router-link to="/impressum">Impressum</router-link>
     <span>·</span>
     <router-link to="/datenschutz">Datenschutz</router-link>
+    <template v-if="authenticated">
+      <span>·</span>
+      <a href="#" @click.prevent="showFeedback = true">Feedback</a>
+    </template>
   </footer>
+  <feedback-modal :is-open="showFeedback" @close="showFeedback = false"/>
   </div>
 </template>
 
