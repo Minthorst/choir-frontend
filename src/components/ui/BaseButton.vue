@@ -35,14 +35,15 @@ const componentType = computed(() => {
   align-items: center;
   justify-content: center;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: clamp(0.68rem, 3vw, 0.875rem);
   font-weight: 500;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem clamp(0.4rem, 3vw, 1rem);
   min-height: 2.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
   transition: all 0.15s ease-in-out;
   box-sizing: border-box;
 }
@@ -89,11 +90,5 @@ const componentType = computed(() => {
 .base-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-@media (max-width: 480px) {
-  .base-button {
-    font-size: 0.95rem;
-  }
 }
 </style>

@@ -74,4 +74,31 @@ const calendarOptions = {
 .schedule-calendar :deep(.fc-list-day-side-text) {
   color: var(--fg);
 }
+.schedule-calendar :deep(.fc-toolbar) {
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.schedule-calendar :deep(.fc-toolbar-chunk:first-child) {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.schedule-calendar :deep(.fc-toolbar-title) {
+  font-size: clamp(1rem, 5vw, 1.4rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.schedule-calendar :deep(.fc-toolbar-chunk:last-child) {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.schedule-calendar :deep(.fc-button) {
+  padding: clamp(0.25rem, 1.2vw, 0.4em) clamp(0.35rem, 2vw, 0.65em);
+  font-size: clamp(0.75rem, 3vw, 1em);
+}
 </style>

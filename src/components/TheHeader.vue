@@ -23,7 +23,7 @@ async function handleLogout() {
 <template>
   <div class="button-group">
     <base-button to="/member">Member</base-button>
-    <base-button to="/doorman">Doorhuman</base-button>
+    <base-button to="/doorhuman">Doorhuman</base-button>
     <base-button to="/admin">Admin</base-button>
     <base-button v-if="authenticated" variant="secondary" @click="handleLogout">Logout</base-button>
   </div>
@@ -33,20 +33,15 @@ async function handleLogout() {
 <style scoped>
 .button-group {
   display: flex;
-  gap: 0.75rem;
+  gap: clamp(0.3rem, 2vw, 0.75rem);
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   width: 100%;
 }
 
-@media (max-width: 400px) {
-  .button-group {
-    flex-direction: column;
-  }
-
-  .button-group :deep(.base-button) {
-    width: 100%;
-  }
+.button-group :deep(.base-button) {
+  flex: 1 1 0;
+  min-width: 0;
 }
 </style>
