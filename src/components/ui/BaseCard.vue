@@ -82,6 +82,13 @@ function toggle() {
   user-select: none;
 }
 
+.card-header :slotted(h1),
+.card-header :slotted(h2),
+.card-header :slotted(h3),
+.card-header :slotted(h4) {
+  margin: 0;
+}
+
 .chevron {
   display: inline-block;
   margin-left: 0.5rem;
@@ -105,6 +112,7 @@ function toggle() {
 
 .collapse-wrapper.collapsible .collapse-inner {
   overflow: hidden;
+  min-height: 0;
 }
 
 .card-body {

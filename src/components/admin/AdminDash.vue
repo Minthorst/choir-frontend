@@ -384,10 +384,6 @@ function finalize(session: SessionResponse, sessionType: string) {
   max-width: 760px;
 }
 
-.members-card {
-  margin-top: 1.5rem;
-}
-
 .member-search {
   width: 100%;
   margin-bottom: 1rem;
@@ -430,10 +426,6 @@ function finalize(session: SessionResponse, sessionType: string) {
   cursor: pointer;
   text-decoration: underline;
   color: var(--fg);
-}
-
-.add-member-card {
-  margin-top: 1.5rem;
 }
 
 .add-member-form {
