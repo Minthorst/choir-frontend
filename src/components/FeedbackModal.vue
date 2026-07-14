@@ -92,7 +92,7 @@ textarea {
 }
 
 .error {
-  color: #ef4444;
+  color: var(--danger);
   margin-top: 0.5rem;
   text-align: center;
 }

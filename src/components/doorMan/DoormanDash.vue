@@ -83,9 +83,15 @@ function constructQRScannerResponse(secretKey: string) {
 
 function onDetect(detectedCodes: any) {
   toggleScanner()
-  //TODO exception when unexpected QR
-  const secretKey = extractSecretKeyFromUrl(detectedCodes[0].rawValue)
-  checkInMember(extractSecretKeyFromUrl(detectedCodes[0].rawValue)).then(() => {
+  let secretKey: string
+  try {
+    secretKey = extractSecretKeyFromUrl(detectedCodes[0].rawValue)
+  } catch {
+    checkInResponse.value = 'This is not a valid member QR code'
+    checkInSuccess.value = 'fail'
+    return
+  }
+  checkInMember(secretKey).then(() => {
     constructQRScannerResponse(secretKey)
     checkInSuccess.value = 'success'
     fetchCheckedInMembers()
@@ -101,8 +107,16 @@ function onDetect(detectedCodes: any) {
   })
 }
 
-function extractSecretKeyFromUrl(rawUrl: string) {
-  return new URL(rawUrl).pathname.split('/').filter(Boolean).pop()!
+function extractSecretKeyFromUrl(rawUrl: string): string {
+  const key = new URL(rawUrl).pathname.split('/').filter(Boolean).pop()
+  if (!key) throw new Error('QR code contains no secret key')
+  return key
+}
+
+function onCameraError(error: Error) {
+  scannerOn.value = false
+  checkInResponse.value = 'Camera error: ' + error.message
+  checkInSuccess.value = 'fail'
 }
 </script>
 
@@ -111,7 +125,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
     <template #header>
       <h3>📷 QR-CheckIn</h3>
     </template>
-    <base-button class="scan-button" @click="toggleScanner">scan QR-Code</base-button>
+    <base-button @click="toggleScanner">scan QR-Code</base-button>
   </base-card>
   <base-card>
     <template #header>
@@ -137,7 +151,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
     </div>
   </base-card>
   <modal :is-open="scannerOn" @close="toggleScanner">
-    <qrcode-stream @detect="onDetect"></qrcode-stream>
+    <qrcode-stream @detect="onDetect" @error="onCameraError"></qrcode-stream>
   </modal>
   <base-card>
     <template #header>
@@ -152,11 +166,6 @@ function extractSecretKeyFromUrl(rawUrl: string) {
 </template>
 
 <style scoped>
-.scan-button {
-  display: block;
-  margin: 2rem auto;
-}
-
 :deep(video) {
   width: 100%;
   height: auto;
@@ -167,8 +176,7 @@ function extractSecretKeyFromUrl(rawUrl: string) {
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
-  max-width: 480px;
-  margin: 2rem auto 0;
+  width: 100%;
 }
 
 .member-select {
@@ -218,11 +226,5 @@ function extractSecretKeyFromUrl(rawUrl: string) {
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   background-color: var(--row);
-}
-
-.empty-state {
-  color: var(--muted);
-  text-align: center;
-  margin: 1rem 0;
 }
 </style>

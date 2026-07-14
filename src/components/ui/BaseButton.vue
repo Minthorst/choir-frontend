@@ -58,6 +58,18 @@ const componentType = computed(() => {
   box-shadow: none;
 }
 
+.base-button:disabled {
+  background-color: grey;
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+.base-button:disabled:hover {
+  background-color: grey;
+  transform: none;
+  box-shadow: none;
+}
+
 .primary {
   background-color: var(--accent);
   color: var(--fg);

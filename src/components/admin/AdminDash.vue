@@ -270,12 +270,12 @@ function finalize(session: SessionResponse, sessionType: string) {
         </tbody>
       </table>
     </div>
-    <p v-else-if="!loading" class="empty">No sessions found</p>
+    <p v-else-if="!loading" class="empty-state">No sessions found</p>
 
     <div class="pagination" v-if="totalPages > 1">
-      <base-button @click="pageBack">&lt;</base-button>
+      <base-button :disabled="currentPage === 1" @click="pageBack">&lt;</base-button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
-      <base-button @click="pageForward">&gt;</base-button>
+      <base-button :disabled="currentPage === totalPages" @click="pageForward">&gt;</base-button>
     </div>
   </base-card>
 
@@ -310,12 +310,12 @@ function finalize(session: SessionResponse, sessionType: string) {
         </tbody>
       </table>
     </div>
-    <p v-else class="empty">No members found</p>
+    <p v-else class="empty-state">No members found</p>
 
     <div class="pagination" v-if="memberTotalPages > 1">
-      <base-button @click="memberPageBack">&lt;</base-button>
+      <base-button :disabled="memberPage === 1" @click="memberPageBack">&lt;</base-button>
       <span>{{ memberPage }} / {{ memberTotalPages }}</span>
-      <base-button @click="memberPageForward">&gt;</base-button>
+      <base-button :disabled="memberPage === memberTotalPages" @click="memberPageForward">&gt;</base-button>
     </div>
   </base-card>
 
@@ -341,7 +341,7 @@ function finalize(session: SessionResponse, sessionType: string) {
       <li v-for="member in attendingMembers" :key="member.id" @click="openMemberDetail(member)">
         {{ member.name }}
       </li>
-      <li v-if="attendingMembers.length === 0" class="empty">No attendees</li>
+      <li v-if="attendingMembers.length === 0" class="empty-state">No attendees</li>
     </ul>
   </modal>
 
@@ -378,12 +378,6 @@ function finalize(session: SessionResponse, sessionType: string) {
 </template>
 
 <style scoped>
-.base-card.sessions-card,
-.base-card.members-card,
-.base-card.add-member-card {
-  max-width: 760px;
-}
-
 .member-search {
   width: 100%;
   margin-bottom: 1rem;
@@ -481,12 +475,6 @@ td {
   border-bottom: 1px solid var(--row-ghost);
 }
 
-.empty {
-  color: var(--muted);
-  text-align: center;
-  margin: 1rem 0;
-}
-
 .members-list {
   list-style: none;
   margin: 0;
@@ -503,7 +491,7 @@ td {
   text-decoration: underline;
 }
 
-.members-list li.empty {
+.members-list li.empty-state {
   text-decoration: none;
   cursor: default;
 }

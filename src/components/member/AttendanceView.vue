@@ -2,7 +2,6 @@
 import {Attendance} from "@/types/attendance";
 import {computed, ref} from "vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
-import BaseCard from "@/components/ui/BaseCard.vue";
 
 const props = defineProps<{ attendance: Attendance[] }>()
 
@@ -74,7 +73,7 @@ function statusLabel(status: string) {
 </script>
 
 <template>
-  <base-card>
+  <div class="attendance-log">
     <table v-if="attendance && attendance.length > 0">
       <thead>
       <tr>
@@ -91,17 +90,21 @@ function statusLabel(status: string) {
       </tr>
       </tbody>
     </table>
-    <p v-else>No Attendance Record found</p>
+    <p v-else class="empty-state">No Attendance Record found</p>
 
     <div class="pagination" v-if="totalPages > 1">
-      <base-button @click="pageBack">&lt;</base-button>
+      <base-button :disabled="currentPage === 1" @click="pageBack">&lt;</base-button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
-      <base-button @click="pageForward">&gt;</base-button>
+      <base-button :disabled="currentPage === totalPages" @click="pageForward">&gt;</base-button>
     </div>
-  </base-card>
+  </div>
 </template>
 
 <style scoped>
+.attendance-log {
+  width: 100%;
+}
+
 tbody tr:not(:last-child) td {
   border-bottom: 1px solid var(--row-ghost);
 }
@@ -111,8 +114,7 @@ td:first-child {
   width: 2rem;
 }
 
-p {
-  color: var(--muted);
-  text-align: center;
+th:first-child {
+  cursor: default;
 }
 </style>

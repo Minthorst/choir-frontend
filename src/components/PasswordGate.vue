@@ -65,7 +65,7 @@ input {
 }
 
 .error {
-  color: #ef4444;
+  color: var(--danger);
   margin-top: 0.75rem;
   text-align: center;
 }

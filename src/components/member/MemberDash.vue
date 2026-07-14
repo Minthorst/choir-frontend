@@ -121,9 +121,7 @@ onMounted(async () => {
   <base-card collapsible :default-open="true">
     <template #header><h3>🚪 Check In</h3></template>
     <div class="vertical-button-group">
-      <base-button :class="{'checkin-not-possible': memberCheckedIn}" :disabled="memberCheckedIn"
-                   @click="showCheckInConfirm = true">CHECK IN
-      </base-button>
+      <base-button :disabled="memberCheckedIn" @click="showCheckInConfirm = true">CHECK IN</base-button>
       <BaseButton @click="toggleQRCode()">QR-CODE</BaseButton>
       <modal :is-open="showQRCode" @close="toggleQRCode">
         <qr-code-viewer :secret-key="secretKey"></qr-code-viewer>
@@ -181,23 +179,11 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.checkin-not-possible {
-  cursor: not-allowed;
-  background-color: grey;
-}
-
 .confirm-actions {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
-}
-
-.base-button:disabled:hover {
-  background-color: #cbd5e1;
-  box-shadow: none;
-  transform: none;
-  cursor: not-allowed;
 }
 
 .vertical-button-group {

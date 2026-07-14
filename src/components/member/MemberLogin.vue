@@ -16,7 +16,6 @@ function login() {
   <base-card>
     <form @submit.prevent="login">
       <label>Your Secret Key:</label>
-      <br>
       <input type="text" v-model="secretKey"/>
       <base-button type="submit">Login</base-button>
     </form>
@@ -29,10 +28,6 @@ form {
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
-}
-
-br {
-  display: none;
 }
 
 input {

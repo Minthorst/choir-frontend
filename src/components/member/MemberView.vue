@@ -112,8 +112,8 @@ td:last-child {
 }
 
 .checkedIn {
-  background-color: #15803d;
-  border-color: #22c55e;
+  background-color: var(--success);
+  border-color: var(--success-border);
   color: #ffffff;
 }
 

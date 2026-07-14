@@ -13,7 +13,7 @@ const showFeedback = ref(false)
 <template>
   <div class="app-container">
   <base-card class="header">
-    <the-header #header @select="activeComponent = $event"/>
+    <the-header #header/>
   </base-card>
   <router-view/>
   <footer class="legal-footer">

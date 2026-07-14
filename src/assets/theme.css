@@ -9,6 +9,9 @@
   --row-active: #3c2373;
   --danger: #ef4444;
   --danger-hover: #dc2626;
+  --danger-strong: #b91c1c;
+  --success: #15803d;
+  --success-border: #22c55e;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -49,7 +52,9 @@ label {
 
 input[type="text"],
 input[type="password"],
-input[type="number"] {
+input[type="number"],
+input[type="email"],
+textarea {
   background-color: var(--bg);
   border: 1px solid var(--row-active);
   border-radius: var(--radius-sm);
@@ -63,7 +68,9 @@ input[type="number"] {
 
 input[type="text"]:focus,
 input[type="password"]:focus,
-input[type="number"]:focus {
+input[type="number"]:focus,
+input[type="email"]:focus,
+textarea:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -98,6 +105,12 @@ td {
   }
 }
 
+.empty-state {
+  color: var(--muted);
+  text-align: center;
+  margin: 1rem 0;
+}
+
 .pagination {
   display: flex;
   align-items: center;
@@ -109,11 +122,11 @@ td {
 }
 
 .success-modal .modal-content {
-  background-color: #15803d;
+  background-color: var(--success);
   color: #ffffff;
 }
 
 .fail-modal .modal-content {
-  background-color: #b91c1c;
+  background-color: var(--danger-strong);
   color: #ffffff;
 }
