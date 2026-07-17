@@ -24,7 +24,7 @@ async function submit() {
         if (hasRole('ADMIN')) {
           router.push('/admin')
         } else if (hasRole('DOORMAN')) {
-          router.push('/doorman')
+          router.push('/doorhuman')
         } else {
           const target = consumePendingRedirect()
           const requiredRole = ROUTE_ROLE[router.resolve(target).name]

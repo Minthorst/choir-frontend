@@ -50,6 +50,10 @@ function openMemberDetail(member: AdminMemberInfoResponse) {
   showMemberModal.value = true
 }
 
+function hasNegativeTickets(member: AdminMemberInfoResponse) {
+  return member.regularTickets + member.commitTickets < 0
+}
+
 const newMemberName = ref('')
 const createdSecretKey = ref('')
 const showCreatedModal = ref(false)
@@ -304,7 +308,8 @@ function finalize(session: SessionResponse, sessionType: string) {
         </thead>
         <tbody>
         <tr v-for="member in memberPageItems" :key="member.id">
-          <td class="clickable-cell" @click="openMemberDetail(member)">{{ member.name }}</td>
+          <td class="clickable-cell" :class="{'negative-tickets': hasNegativeTickets(member)}"
+              @click="openMemberDetail(member)">{{ member.name }}</td>
           <td>{{ member.checkedIn ? 'Yes' : 'No' }}</td>
         </tr>
         </tbody>
@@ -420,6 +425,10 @@ function finalize(session: SessionResponse, sessionType: string) {
   cursor: pointer;
   text-decoration: underline;
   color: var(--fg);
+}
+
+.negative-tickets {
+  color: var(--danger);
 }
 
 .add-member-form {
