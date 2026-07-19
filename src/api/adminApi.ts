@@ -15,6 +15,7 @@ export interface AdminMemberInfoResponse {
     commitTickets: number
     secretKey: string
     checkedIn: boolean
+    archived: boolean
 }
 
 export interface EndSessionResponse {
@@ -55,6 +56,14 @@ export async function addTickets(memberId: number, regularTickets: number, commi
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({memberId, regularTickets, commitTickets})
+    })
+}
+
+export async function setMemberArchived(memberId: number, archived: boolean): Promise<void> {
+    await apiFetch('/admin/members/archive', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({memberId, archived})
     })
 }
 

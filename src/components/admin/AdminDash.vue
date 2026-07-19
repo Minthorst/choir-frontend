@@ -8,6 +8,7 @@ import {
   getAllMembers,
   getAllSessions,
   getAttendingMembers,
+  setMemberArchived,
   SessionResponse
 } from "@/api/adminApi";
 import BaseCard from "@/components/ui/BaseCard.vue";
@@ -38,6 +39,7 @@ const memberSortKey = ref<'name' | 'regularTickets' | 'commitTickets' | 'checked
 const memberSortDir = ref<'asc' | 'desc'>('asc')
 const memberPage = ref(1)
 const memberPageSize = 5
+const showArchived = ref(false)
 
 const ticketInputs = ref<Record<number, { regular: number; commit: number }>>({})
 
@@ -99,9 +101,18 @@ function sortMembersBy(key: 'name' | 'regularTickets' | 'commitTickets' | 'check
 
 const filteredMembers = computed(() => {
   const query = memberSearch.value.trim().toLowerCase()
-  if (!query) return allMembers.value
-  return allMembers.value.filter((m) => m.name.toLowerCase().includes(query))
+  if (query) {
+    return allMembers.value.filter((m) => m.name.toLowerCase().includes(query))
+  }
+  return showArchived.value ? allMembers.value : allMembers.value.filter((m) => !m.archived)
 })
+
+function toggleArchive(member: AdminMemberInfoResponse) {
+  setMemberArchived(member.id, !member.archived).then(() => {
+    showMemberModal.value = false
+    loadMembers()
+  })
+}
 
 const sortedMembers = computed(() => {
   const dir = memberSortDir.value === 'asc' ? 1 : -1
@@ -294,6 +305,10 @@ function finalize(session: SessionResponse, sessionType: string) {
         placeholder="Search by name..."
         @input="memberPage = 1"
     />
+    <label class="show-archived">
+      <input type="checkbox" v-model="showArchived" @change="memberPage = 1"/>
+      Show archived members
+    </label>
     <div class="table-scroll" v-if="memberPageItems.length > 0">
       <table class="members-table">
         <thead>
@@ -308,8 +323,8 @@ function finalize(session: SessionResponse, sessionType: string) {
         </thead>
         <tbody>
         <tr v-for="member in memberPageItems" :key="member.id">
-          <td class="clickable-cell" :class="{'negative-tickets': hasNegativeTickets(member)}"
-              @click="openMemberDetail(member)">{{ member.name }}</td>
+          <td class="clickable-cell" :class="{'negative-tickets': hasNegativeTickets(member), 'archived-row': member.archived}"
+              @click="openMemberDetail(member)">{{ member.name }}<span v-if="member.archived" class="archived-tag"> · archiviert</span></td>
           <td>{{ member.checkedIn ? 'Yes' : 'No' }}</td>
         </tr>
         </tbody>
@@ -364,7 +379,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 
   <modal :is-open="showMemberModal" @close="showMemberModal = false">
     <template v-if="selectedMember">
-      <h3>{{ selectedMember.name }}</h3>
+      <h3>{{ selectedMember.name }}<span v-if="selectedMember.archived" class="archived-tag"> (archived)</span></h3>
       <p class="member-secret-key">Secret Key: {{ selectedMember.secretKey }}</p>
       <div class="member-tickets">
         <div class="ticket-row">
@@ -378,6 +393,11 @@ function finalize(session: SessionResponse, sessionType: string) {
           <base-button variant="secondary" @click="addCommitTickets(selectedMember)">Add</base-button>
         </div>
       </div>
+      <div class="member-archive-action">
+        <button type="button" class="archive-link" @click="toggleArchive(selectedMember)">
+          {{ selectedMember.archived ? 'reactivate member' : 'archive member' }}
+        </button>
+      </div>
     </template>
   </modal>
 </template>
@@ -385,7 +405,49 @@ function finalize(session: SessionResponse, sessionType: string) {
 <style scoped>
 .member-search {
   width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.show-archived {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
   margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+.archived-tag {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.archived-row {
+  opacity: 0.6;
+}
+
+.member-archive-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.75rem;
+}
+
+.archive-link {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.archive-link:hover {
+  opacity: 1;
+  color: var(--fg);
 }
 
 .table-scroll {
