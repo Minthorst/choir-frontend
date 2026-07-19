@@ -53,7 +53,7 @@ function openMemberDetail(member: AdminMemberInfoResponse) {
 }
 
 function hasNegativeTickets(member: AdminMemberInfoResponse) {
-  return member.regularTickets + member.commitTickets < 0
+  return member.regularTickets < 0 || member.commitTickets < 0
 }
 
 const newMemberName = ref('')
@@ -117,6 +117,11 @@ function toggleArchive(member: AdminMemberInfoResponse) {
 const sortedMembers = computed(() => {
   const dir = memberSortDir.value === 'asc' ? 1 : -1
   return [...filteredMembers.value].sort((a, b) => {
+    if (memberSortKey.value === 'name') {
+      const aNegative = hasNegativeTickets(a)
+      const bNegative = hasNegativeTickets(b)
+      if (aNegative !== bNegative) return aNegative ? -1 : 1
+    }
     let av: any = a[memberSortKey.value]
     let bv: any = b[memberSortKey.value]
     if (typeof av === 'string') av = av.toLowerCase()
@@ -491,6 +496,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 
 .negative-tickets {
   color: var(--danger);
+  font-weight: bold;
 }
 
 .add-member-form {
