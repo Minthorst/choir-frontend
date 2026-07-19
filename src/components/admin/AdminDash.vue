@@ -8,9 +8,12 @@ import {
   getAllMembers,
   getAllSessions,
   getAttendingMembers,
+  getMemberTicketLog,
   setMemberArchived,
   SessionResponse
 } from "@/api/adminApi";
+import {TicketLogEntry} from "@/types/ticketLog";
+import TicketLogView from "@/components/member/TicketLogView.vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
 import BaseButton from "@/components/ui/BaseButton.vue";
 import Modal from "@/components/ui/Modal.vue";
@@ -46,9 +49,22 @@ const ticketInputs = ref<Record<number, { regular: number; commit: number }>>({}
 const selectedMemberId = ref<number | null>(null)
 const showMemberModal = ref(false)
 const selectedMember = computed(() => allMembers.value.find((m) => m.id === selectedMemberId.value) ?? null)
+const memberTicketLog = ref<TicketLogEntry[]>([])
+
+function loadMemberTicketLog(memberId: number) {
+  getMemberTicketLog(memberId)
+      .then((log) => {
+        memberTicketLog.value = log
+      })
+      .catch(() => {
+        memberTicketLog.value = []
+      })
+}
 
 function openMemberDetail(member: AdminMemberInfoResponse) {
   selectedMemberId.value = member.id
+  memberTicketLog.value = []
+  loadMemberTicketLog(member.id)
   showMemberModal.value = true
 }
 
@@ -150,6 +166,7 @@ function addRegularTickets(member: AdminMemberInfoResponse) {
   addTickets(member.id, amount, 0).then(() => {
     getTicketInput(member.id).regular = 0
     loadMembers()
+    loadMemberTicketLog(member.id)
   })
 }
 
@@ -159,6 +176,7 @@ function addCommitTickets(member: AdminMemberInfoResponse) {
   addTickets(member.id, 0, amount).then(() => {
     getTicketInput(member.id).commit = 0
     loadMembers()
+    loadMemberTicketLog(member.id)
   })
 }
 
@@ -382,7 +400,7 @@ function finalize(session: SessionResponse, sessionType: string) {
 
   <result-modal :status="finalizeStatus" :message="finalizeResponse" @close="finalizeStatus = 'pending'"/>
 
-  <modal :is-open="showMemberModal" @close="showMemberModal = false">
+  <modal class="member-detail-modal" :is-open="showMemberModal" @close="showMemberModal = false">
     <template v-if="selectedMember">
       <h3>{{ selectedMember.name }}<span v-if="selectedMember.archived" class="archived-tag"> (archived)</span></h3>
       <p class="member-secret-key">Secret Key: {{ selectedMember.secretKey }}</p>
@@ -398,6 +416,12 @@ function finalize(session: SessionResponse, sessionType: string) {
           <base-button variant="secondary" @click="addCommitTickets(selectedMember)">Add</base-button>
         </div>
       </div>
+      <base-card collapsible :default-open="false" class="member-ticket-log">
+        <template #header>
+          <h3>🎫 Ticket Log</h3>
+        </template>
+        <ticket-log-view :entries="memberTicketLog"></ticket-log-view>
+      </base-card>
       <div class="member-archive-action">
         <button type="button" class="archive-link" @click="toggleArchive(selectedMember)">
           {{ selectedMember.archived ? 'reactivate member' : 'archive member' }}
@@ -523,6 +547,14 @@ function finalize(session: SessionResponse, sessionType: string) {
   color: var(--muted);
   text-align: center;
   margin-top: 0.25rem;
+}
+
+.member-detail-modal :deep(.modal-content) {
+  width: min(560px, 100%);
+}
+
+.member-ticket-log {
+  margin-top: 1.25rem;
 }
 
 .member-tickets {

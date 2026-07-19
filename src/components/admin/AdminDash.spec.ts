@@ -2,13 +2,14 @@ import {beforeEach, describe, expect, it, vi} from 'vitest'
 import {flushPromises, mount, VueWrapper} from '@vue/test-utils'
 import AdminDash from './AdminDash.vue'
 import type {AdminMemberInfoResponse} from '@/api/adminApi'
-import {getAllMembers, getAllSessions} from '@/api/adminApi'
+import {getAllMembers, getAllSessions, getMemberTicketLog} from '@/api/adminApi'
 
 vi.mock('@/api/adminApi', () => ({
     getAllSessions: vi.fn(),
     getAttendingMembers: vi.fn(),
     finalizeSession: vi.fn(),
     getAllMembers: vi.fn(),
+    getMemberTicketLog: vi.fn(),
     addTickets: vi.fn(),
     setMemberArchived: vi.fn(),
     createMember: vi.fn(),
@@ -37,7 +38,7 @@ const members = [
 const stubs = {
     BaseCard: {template: '<div><slot name="header"/><slot/><slot name="footer"/></div>'},
     BaseButton: {template: '<button><slot/></button>'},
-    Modal: true,
+    Modal: {template: '<div class="modal-stub"><slot/></div>'},
     ResultModal: true,
 }
 
@@ -59,6 +60,7 @@ describe('AdminDash member list', () => {
     beforeEach(() => {
         vi.mocked(getAllSessions).mockResolvedValue([])
         vi.mocked(getAllMembers).mockResolvedValue(members)
+        vi.mocked(getMemberTicketLog).mockResolvedValue([])
     })
 
     it('shows members with negative tickets first, then the rest alphabetically', async () => {
@@ -104,5 +106,29 @@ describe('AdminDash member list', () => {
         await wrapper.find('.member-search').setValue('zo')
 
         expect(memberNames(wrapper)).toEqual(['Zoe'])
+    })
+})
+
+describe('AdminDash member ticket log', () => {
+    beforeEach(() => {
+        vi.mocked(getAllSessions).mockResolvedValue([])
+        vi.mocked(getAllMembers).mockResolvedValue(members)
+        vi.mocked(getMemberTicketLog).mockResolvedValue([
+            {timestamp: '2026-07-15T10:00:00', regularDelta: 5, commitDelta: 0, type: 'ADMIN_ADJUSTMENT'},
+            {timestamp: '2026-07-10T19:30:00', regularDelta: 0, commitDelta: -1, type: 'CHECK_IN'},
+            {timestamp: '2026-07-01T20:00:00', regularDelta: 2, commitDelta: 1, type: 'INITIAL_BALANCE'},
+        ])
+    })
+
+    it('loads and shows the full ticket log when a member is opened', async () => {
+        const wrapper = await mountDash()
+
+        await memberRows(wrapper)[0].find('td').trigger('click')
+        await flushPromises()
+
+        expect(vi.mocked(getMemberTicketLog)).toHaveBeenCalledWith(4) // Ben is the first row
+        const reasons = wrapper.findAll('.member-ticket-log tbody tr')
+            .map((row) => row.findAll('td')[1].text())
+        expect(reasons).toEqual(['Admin', 'Check-in', 'Init'])
     })
 })

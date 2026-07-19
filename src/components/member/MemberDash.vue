@@ -4,7 +4,8 @@ import {computed, onMounted, ref} from "vue";
 import MemberView from "@/components/member/MemberView.vue";
 import {Member} from "@/types/member";
 import {AttendanceResponse} from "@/types/attendance";
-import {checkInMember, getMemberData} from "@/api/memberApi";
+import {checkInMember, getMemberData, getTicketLog} from "@/api/memberApi";
+import {TicketLogEntry} from "@/types/ticketLog";
 import BaseButton from "@/components/ui/BaseButton.vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
 import QrCodeViewer from "@/components/member/QrCodeViewer.vue";
@@ -20,6 +21,7 @@ const route = useRoute()
 const secretKey = Array.isArray(route.params.secretKey) ? route.params.secretKey[0] : route.params.secretKey
 const loading = ref(true)
 const memberData = ref<Member | null>(null)
+const ticketLog = ref<TicketLogEntry[]>([])
 const showQRCode = ref(false)
 const showCheckInConfirm = ref(false)
 const resultMessage = ref('')
@@ -87,6 +89,13 @@ function checkInAndFetchMember() {
 
 function getMemberInfo() {
   loading.value = true
+  getTicketLog(secretKey)
+      .then((log) => {
+        ticketLog.value = log
+      })
+      .catch(() => {
+        ticketLog.value = []
+      })
   getMemberData(secretKey)
       .then((m) => {
         memberData.value = {
@@ -137,7 +146,7 @@ onMounted(async () => {
       </modal>
     </div>
   </base-card>
-  <member-view :member-data="memberData" :secret-key="secretKey"></member-view>
+  <member-view :member-data="memberData" :secret-key="secretKey" :ticket-log="ticketLog"></member-view>
   <base-card collapsible :default-open="false">
     <template #header><h3>🎟️ Buy Tickets</h3></template>
     <div>

@@ -1,4 +1,5 @@
 import {apiFetch} from "@/api/http";
+import {TicketLogEntry} from "@/types/ticketLog";
 
 export interface SessionResponse {
     id: number
@@ -48,6 +49,11 @@ export async function finalizeSession(sessionId: number, sessionType: string): P
 
 export async function getAllMembers(): Promise<AdminMemberInfoResponse[]> {
     const response = await apiFetch('/admin/members')
+    return response.json()
+}
+
+export async function getMemberTicketLog(memberId: number): Promise<TicketLogEntry[]> {
+    const response = await apiFetch(`/admin/members/${memberId}/ticketlog`)
     return response.json()
 }
 

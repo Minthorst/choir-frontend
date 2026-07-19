@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import {Member} from "@/types/member";
+import {TicketLogEntry} from "@/types/ticketLog";
 import AttendanceView from "@/components/member/AttendanceView.vue";
+import TicketLogView from "@/components/member/TicketLogView.vue";
 import {computed} from "vue";
 import BaseCard from "@/components/ui/BaseCard.vue";
 
-const props = defineProps<{ memberData: Member, secretKey: string }>()
+const props = defineProps<{ memberData: Member, secretKey: string, ticketLog?: TicketLogEntry[] }>()
 
 const checkedIn = computed(() => {
       if (props.memberData.checkedIn) {
@@ -58,6 +60,12 @@ const checkInDateTime = computed(() => {
         <h3>📋 Attendance Log</h3>
       </template>
       <attendance-view :attendance="memberData.pastAttendance"></attendance-view>
+    </base-card>
+    <base-card collapsible :default-open="false">
+      <template #header>
+        <h3>🎫 Ticket Log</h3>
+      </template>
+      <ticket-log-view :entries="ticketLog ?? []"></ticket-log-view>
     </base-card>
   </base-card>
 </template>
